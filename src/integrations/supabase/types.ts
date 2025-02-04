@@ -11,8 +11,6 @@ export type Database = {
     Tables: {
       mosques: {
         Row: {
-          address: string
-          closing_time: string
           created_at: string
           description: string | null
           id: string
@@ -20,11 +18,10 @@ export type Database = {
           latitude: number
           longitude: number
           name: string
-          opening_time: string
+          operating_hours: Json
+          website_url: string | null
         }
         Insert: {
-          address: string
-          closing_time: string
           created_at?: string
           description?: string | null
           id?: string
@@ -32,11 +29,10 @@ export type Database = {
           latitude: number
           longitude: number
           name: string
-          opening_time: string
+          operating_hours?: Json
+          website_url?: string | null
         }
         Update: {
-          address?: string
-          closing_time?: string
           created_at?: string
           description?: string | null
           id?: string
@@ -44,7 +40,8 @@ export type Database = {
           latitude?: number
           longitude?: number
           name?: string
-          opening_time?: string
+          operating_hours?: Json
+          website_url?: string | null
         }
         Relationships: []
       }

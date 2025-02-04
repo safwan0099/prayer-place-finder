@@ -1,6 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
 import { Mosque } from '@/types/mosque';
 import { isOpen } from '@/utils/timeUtils';
 
@@ -10,82 +8,92 @@ interface MapProps {
 }
 
 const Map = ({ mosques, onLocationSelect }: MapProps) => {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const [userLocation, setUserLocation] = useState<[number, number]>([0, 0]);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number }>({ lat: 0, lng: 0 });
 
   useEffect(() => {
-    if (!mapContainer.current) return;
+    const initMap = async () => {
+      if (!mapContainerRef.current) return;
 
-    // Initialize map
-    mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbHRpYmF3Z2gwMGlqMmtvNWR4NWM4YnBsIn0.O2p8VVHhRGVLjYXYXx8pDg';
-    
-    navigator.geolocation.getCurrentPosition((position) => {
-      const { latitude, longitude } = position.coords;
-      setUserLocation([longitude, latitude]);
-      
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current!,
-        style: 'mapbox://styles/mapbox/light-v11',
-        center: [longitude, latitude],
-        zoom: 12
-      });
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation({ lat: latitude, lng: longitude });
 
-      // Add navigation controls
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-      // Add click handler for location selection
-      if (onLocationSelect) {
-        map.current.on('click', (e) => {
-          onLocationSelect(e.lngLat.lat, e.lngLat.lng);
+        const map = new google.maps.Map(mapContainerRef.current!, {
+          center: { lat: latitude, lng: longitude },
+          zoom: 12,
         });
-      }
 
-      // Add markers for mosques
-      mosques.forEach((mosque) => {
-        const el = document.createElement('div');
-        el.className = 'marker';
-        el.style.width = '25px';
-        el.style.height = '25px';
-        el.style.borderRadius = '50%';
-        el.style.backgroundColor = isOpen(mosque.operatingHours) ? '#059669' : '#ef4444';
-        el.style.border = '2px solid white';
-        el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-        el.style.cursor = 'pointer';
+        mapRef.current = map;
 
-        new mapboxgl.Marker(el)
-          .setLngLat([mosque.longitude, mosque.latitude])
-          .setPopup(
-            new mapboxgl.Popup({ offset: 25 })
-              .setHTML(`
-                <div class="p-2">
-                  <h3 class="font-bold">${mosque.name}</h3>
-                  <p class="text-sm">${mosque.description || ''}</p>
-                  <p class="text-sm mt-1">
-                    Status: <span class="${isOpen(mosque.operatingHours) ? 'text-green-600' : 'text-red-600'}">
-                      ${isOpen(mosque.operatingHours) ? 'Open' : 'Closed'}
-                    </span>
-                  </p>
-                  <a href="https://www.google.com/maps/dir/?api=1&destination=${mosque.latitude},${mosque.longitude}"
-                     target="_blank"
-                     class="text-sm text-blue-600 hover:text-blue-800 mt-2 block">
-                    Get Directions
-                  </a>
-                </div>
-              `)
-          )
-          .addTo(map.current);
+        // Add click handler for location selection
+        if (onLocationSelect) {
+          map.addListener('click', (e: google.maps.MapMouseEvent) => {
+            if (e.latLng) {
+              onLocationSelect(e.latLng.lat(), e.latLng.lng());
+            }
+          });
+        }
+
+        // Add markers for mosques
+        mosques.forEach((mosque) => {
+          const marker = new google.maps.Marker({
+            position: { lat: mosque.latitude, lng: mosque.longitude },
+            map,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              fillColor: isOpen(mosque.operating_hours) ? '#059669' : '#ef4444',
+              fillOpacity: 1,
+              strokeColor: '#ffffff',
+              strokeWeight: 2,
+              scale: 8,
+            },
+          });
+
+          const infoWindow = new google.maps.InfoWindow({
+            content: `
+              <div class="p-2">
+                <h3 class="font-bold">${mosque.name}</h3>
+                <p class="text-sm">${mosque.description || ''}</p>
+                <p class="text-sm mt-1">
+                  Status: <span class="${isOpen(mosque.operating_hours) ? 'text-green-600' : 'text-red-600'}">
+                    ${isOpen(mosque.operating_hours) ? 'Open' : 'Closed'}
+                  </span>
+                </p>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${mosque.latitude},${mosque.longitude}"
+                   target="_blank"
+                   class="text-sm text-blue-600 hover:text-blue-800 mt-2 block">
+                  Get Directions
+                </a>
+              </div>
+            `,
+          });
+
+          marker.addListener('click', () => {
+            infoWindow.open(map, marker);
+          });
+        });
       });
-    });
+    };
+
+    // Load Google Maps script
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`;
+    script.async = true;
+    script.defer = true;
+    script.onload = initMap;
+    document.head.appendChild(script);
 
     return () => {
-      map.current?.remove();
+      // Cleanup
+      document.head.removeChild(script);
     };
   }, [mosques, onLocationSelect]);
 
   return (
     <div className="relative w-full h-[500px] rounded-lg overflow-hidden shadow-lg">
-      <div ref={mapContainer} className="absolute inset-0" />
+      <div ref={mapContainerRef} className="absolute inset-0" />
     </div>
   );
 };

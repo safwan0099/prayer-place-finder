@@ -2,7 +2,7 @@ import React from 'react';
 import { Mosque } from '@/types/mosque';
 import { isOpen } from '@/utils/timeUtils';
 import { Card } from '@/components/ui/card';
-import { ExternalLink, Clock, MapPin } from 'lucide-react';
+import { ExternalLink, Clock, MapPin, Globe } from 'lucide-react';
 
 interface MosqueListProps {
   mosques: Mosque[];
@@ -39,24 +39,33 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
                 <p className="text-gray-600 mt-1">{mosque.description}</p>
               )}
             </div>
-            <div className={`px-2 py-1 rounded-full text-sm ${
-              isOpen(mosque.operatingHours) 
-                ? 'bg-green-100 text-green-800'
-                : 'bg-red-100 text-red-800'
-            }`}>
-              {isOpen(mosque.operatingHours) ? 'Open' : 'Closed'}
+            <div className="flex items-center gap-2">
+              <div className={`px-2 py-1 rounded-full text-sm ${
+                isOpen(mosque.operating_hours) 
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {isOpen(mosque.operating_hours) ? 'Open' : 'Closed'}
+              </div>
+              <div className={`px-2 py-1 rounded-full text-sm ${
+                mosque.is_restricted
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : 'bg-blue-100 text-blue-800'
+              }`}>
+                {mosque.is_restricted ? 'Restricted' : 'Open to Everyone'}
+              </div>
             </div>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-4">
-            {mosque.website && (
+            {mosque.website_url && (
               <a
-                href={mosque.website}
+                href={mosque.website_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center text-blue-600 hover:text-blue-800"
               >
-                <ExternalLink size={16} className="mr-1" />
+                <Globe size={16} className="mr-1" />
                 Website
               </a>
             )}
@@ -73,7 +82,7 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
 
             <div className="flex items-center text-gray-600">
               <Clock size={16} className="mr-1" />
-              {mosque.operatingHours[0].openTime} - {mosque.operatingHours[0].closeTime}
+              {mosque.operating_hours[0].openTime} - {mosque.operating_hours[0].closeTime}
             </div>
           </div>
         </Card>

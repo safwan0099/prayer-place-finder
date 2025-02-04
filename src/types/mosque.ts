@@ -2,12 +2,12 @@ export interface Mosque {
   id?: string;
   name: string;
   description?: string;
-  website?: string;
-  accessType: 'public' | 'restricted';
+  website_url?: string;
+  is_restricted: boolean;
   latitude: number;
   longitude: number;
-  operatingHours: OperatingHours[];
-  createdAt?: string;
+  operating_hours: OperatingHours[];
+  created_at?: string;
 }
 
 export interface OperatingHours {
@@ -19,9 +19,9 @@ export interface OperatingHours {
 export interface MosqueFormData {
   name: string;
   description: string;
-  website: string;
-  accessType: 'public' | 'restricted';
+  website_url: string;
+  is_restricted: boolean;
   latitude: number | null;
   longitude: number | null;
-  operatingHours: OperatingHours[];
+  operating_hours: OperatingHours[];
 }
