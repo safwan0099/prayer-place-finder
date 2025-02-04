@@ -32,7 +32,7 @@ const Index = () => {
       ...data,
       latitude: selectedLocation.lat,
       longitude: selectedLocation.lng,
-      createdAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
     };
 
     setMosques([...mosques, newMosque]);

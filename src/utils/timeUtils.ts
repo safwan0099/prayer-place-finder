@@ -1,6 +1,8 @@
 import { OperatingHours } from '@/types/mosque';
 
-export const isOpen = (operatingHours: OperatingHours[]): boolean => {
+export const isOpen = (operatingHours: OperatingHours[] | null | undefined): boolean => {
+  if (!operatingHours || !Array.isArray(operatingHours)) return false;
+  
   const now = new Date();
   const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' });
   const currentTime = now.toLocaleTimeString('en-US', { 

@@ -21,11 +21,11 @@ const MosqueForm = ({ onSubmit, selectedLocation }: MosqueFormProps) => {
     defaultValues: {
       name: '',
       description: '',
-      website: '',
-      accessType: 'public',
+      website_url: '',
+      is_restricted: false,
       latitude: selectedLocation.lat,
       longitude: selectedLocation.lng,
-      operatingHours: DAYS_OF_WEEK.map(day => ({
+      operating_hours: DAYS_OF_WEEK.map(day => ({
         day,
         openTime: '05:00',
         closeTime: '22:00'
@@ -59,11 +59,11 @@ const MosqueForm = ({ onSubmit, selectedLocation }: MosqueFormProps) => {
         </div>
 
         <div>
-          <Label htmlFor="website">Website</Label>
+          <Label htmlFor="website_url">Website</Label>
           <Input
-            id="website"
+            id="website_url"
             type="url"
-            {...register('website')}
+            {...register('website_url')}
             className="mt-1"
             placeholder="https://..."
           />
@@ -71,13 +71,13 @@ const MosqueForm = ({ onSubmit, selectedLocation }: MosqueFormProps) => {
 
         <div>
           <Label>Access Type</Label>
-          <RadioGroup defaultValue="public" className="mt-2">
+          <RadioGroup defaultValue="false" className="mt-2">
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="public" id="public" />
+              <RadioGroupItem value="false" id="public" {...register('is_restricted')} />
               <Label htmlFor="public">Open to Everyone</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="restricted" id="restricted" />
+              <RadioGroupItem value="true" id="restricted" {...register('is_restricted')} />
               <Label htmlFor="restricted">Restricted Access</Label>
             </div>
           </RadioGroup>
@@ -91,11 +91,11 @@ const MosqueForm = ({ onSubmit, selectedLocation }: MosqueFormProps) => {
               <div className="col-span-2 grid grid-cols-2 gap-2">
                 <Input
                   type="time"
-                  {...register(`operatingHours.${index}.openTime`)}
+                  {...register(`operating_hours.${index}.openTime`)}
                 />
                 <Input
                   type="time"
-                  {...register(`operatingHours.${index}.closeTime`)}
+                  {...register(`operating_hours.${index}.closeTime`)}
                 />
               </div>
             </div>
