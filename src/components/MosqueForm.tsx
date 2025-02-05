@@ -5,20 +5,21 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { MosqueFormData } from '@/types/mosque';
+import { MosqueFormData, Mosque } from '@/types/mosque';
 
 interface MosqueFormProps {
   onSubmit: (data: MosqueFormData) => void;
   selectedLocation: { lat: number | null; lng: number | null };
+  initialValues?: Mosque;
 }
 
 const DAYS_OF_WEEK = [
   'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
 ];
 
-const MosqueForm = ({ onSubmit, selectedLocation }: MosqueFormProps) => {
+const MosqueForm = ({ onSubmit, selectedLocation, initialValues }: MosqueFormProps) => {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<MosqueFormData>({
-    defaultValues: {
+    defaultValues: initialValues || {
       name: '',
       description: '',
       website_url: '',
@@ -35,7 +36,9 @@ const MosqueForm = ({ onSubmit, selectedLocation }: MosqueFormProps) => {
 
   const onSubmitWrapper = async (data: MosqueFormData) => {
     await onSubmit(data);
-    reset(); // Reset form after successful submission
+    if (!initialValues) {
+      reset(); // Only reset if it's a new mosque form
+    }
   };
 
   return (

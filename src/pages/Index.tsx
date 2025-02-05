@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
 import MosqueForm from '@/components/MosqueForm';
 import MosqueList from '@/components/MosqueList';
 import { Mosque, MosqueFormData } from '@/types/mosque';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
+  const navigate = useNavigate();
   const [mosques, setMosques] = useState<Mosque[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number | null;
@@ -87,7 +90,10 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Mosque Finder</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Mosque Finder</h1>
+          <Button onClick={() => navigate('/manage')}>Manage Mosques</Button>
+        </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
