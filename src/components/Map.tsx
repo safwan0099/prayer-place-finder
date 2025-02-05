@@ -27,8 +27,9 @@ const Map = ({ mosques, onLocationSelect }: MapProps) => {
 
         mapRef.current = map;
 
-        // Add click handler for location selection
+        // Add click handler for location selection with cursor style
         if (onLocationSelect) {
+          mapContainerRef.current.style.cursor = 'crosshair';
           map.addListener('click', (e: google.maps.MapMouseEvent) => {
             if (e.latLng) {
               onLocationSelect(e.latLng.lat(), e.latLng.lng());
@@ -80,7 +81,9 @@ const Map = ({ mosques, onLocationSelect }: MapProps) => {
     initMap();
 
     return () => {
-      // Cleanup if needed
+      if (mapContainerRef.current) {
+        mapContainerRef.current.style.cursor = 'default';
+      }
     };
   }, [mosques, onLocationSelect]);
 

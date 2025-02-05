@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Map from '@/components/Map';
 import MosqueForm from '@/components/MosqueForm';
 import MosqueList from '@/components/MosqueList';
 import { Mosque, MosqueFormData } from '@/types/mosque';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const [mosques, setMosques] = useState<Mosque[]>([]);
@@ -13,11 +14,35 @@ const Index = () => {
   }>({ lat: null, lng: null });
   const { toast } = useToast();
 
+  // Load mosques from database
+  useEffect(() => {
+    const fetchMosques = async () => {
+      const { data, error } = await supabase
+        .from('mosques')
+        .select('*');
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load mosques",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data) {
+        setMosques(data);
+      }
+    };
+
+    fetchMosques();
+  }, [toast]);
+
   const handleLocationSelect = (lat: number, lng: number) => {
     setSelectedLocation({ lat, lng });
   };
 
-  const handleSubmit = (data: MosqueFormData) => {
+  const handleSubmit = async (data: MosqueFormData) => {
     if (!selectedLocation.lat || !selectedLocation.lng) {
       toast({
         title: "Location Required",
@@ -27,21 +52,36 @@ const Index = () => {
       return;
     }
 
-    const newMosque: Mosque = {
-      id: Date.now().toString(),
+    const newMosque = {
       ...data,
       latitude: selectedLocation.lat,
       longitude: selectedLocation.lng,
-      created_at: new Date().toISOString(),
     };
 
-    setMosques([...mosques, newMosque]);
-    setSelectedLocation({ lat: null, lng: null });
-    
-    toast({
-      title: "Success",
-      description: "Mosque has been added successfully",
-    });
+    const { data: insertedMosque, error } = await supabase
+      .from('mosques')
+      .insert([newMosque])
+      .select()
+      .single();
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add mosque",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (insertedMosque) {
+      setMosques([...mosques, insertedMosque]);
+      setSelectedLocation({ lat: null, lng: null });
+      
+      toast({
+        title: "Success",
+        description: "Mosque has been added successfully",
+      });
+    }
   };
 
   return (

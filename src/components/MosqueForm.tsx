@@ -17,7 +17,7 @@ const DAYS_OF_WEEK = [
 ];
 
 const MosqueForm = ({ onSubmit, selectedLocation }: MosqueFormProps) => {
-  const { register, handleSubmit, formState: { errors } } = useForm<MosqueFormData>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<MosqueFormData>({
     defaultValues: {
       name: '',
       description: '',
@@ -33,8 +33,13 @@ const MosqueForm = ({ onSubmit, selectedLocation }: MosqueFormProps) => {
     }
   });
 
+  const onSubmitWrapper = async (data: MosqueFormData) => {
+    await onSubmit(data);
+    reset(); // Reset form after successful submission
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-white p-6 rounded-lg shadow-sm">
+    <form onSubmit={handleSubmit(onSubmitWrapper)} className="space-y-6 bg-white p-6 rounded-lg shadow-sm">
       <div className="space-y-4">
         <div>
           <Label htmlFor="name">Mosque Name *</Label>
