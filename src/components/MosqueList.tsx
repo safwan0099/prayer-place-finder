@@ -2,7 +2,7 @@ import React from 'react';
 import { Mosque } from '@/types/mosque';
 import { isOpen } from '@/utils/timeUtils';
 import { Card } from '@/components/ui/card';
-import { ExternalLink, Clock, MapPin, Globe } from 'lucide-react';
+import { ExternalLink, Clock, MapPin, Globe, VideoIcon } from 'lucide-react';
 
 interface MosqueListProps {
   mosques: Mosque[];
@@ -52,7 +52,7 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
                   ? 'bg-yellow-100 text-yellow-800'
                   : 'bg-blue-100 text-blue-800'
               }`}>
-                {mosque.is_restricted ? 'Restricted' : 'Open to Everyone'}
+                {mosque.is_restricted ? 'Student id needed' : 'Open to Everyone'}
               </div>
             </div>
           </div>
@@ -65,8 +65,8 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
                 rel="noopener noreferrer"
                 className="flex items-center text-blue-600 hover:text-blue-800"
               >
-                <Globe size={16} className="mr-1" />
-                Website
+                <VideoIcon size={16} className="mr-1" />
+                Video Direction
               </a>
             )}
             

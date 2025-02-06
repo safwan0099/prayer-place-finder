@@ -61,12 +61,12 @@ const PublicView = () => {
       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Mosque Finder</h1>
-          <a 
+          {/* <a 
             href="/admeen"
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             Admin Login
-          </a>
+          </a> */}
         </div>
         
         <div className="space-y-8">
