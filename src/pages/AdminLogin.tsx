@@ -29,12 +29,22 @@ const AdminLogin = () => {
           .from('profiles')
           .select('is_admin')
           .eq('id', data.user.id)
-          .single();
+          .maybeSingle();
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          throw profileError;
+        }
 
-        if (profileData?.is_admin) {
+        if (!profileData) {
+          throw new Error("Profile not found");
+        }
+
+        if (profileData.is_admin) {
           navigate('/admin');
+          toast({
+            title: "Success",
+            description: "Welcome back, admin!",
+          });
         } else {
           // If not admin, sign out and show error
           await supabase.auth.signOut();
@@ -51,6 +61,8 @@ const AdminLogin = () => {
         description: error.message || "An error occurred during login",
         variant: "destructive",
       });
+      // Sign out if there was an error
+      await supabase.auth.signOut();
     } finally {
       setLoading(false);
     }
