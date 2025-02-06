@@ -8,9 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import ManageMosques from "./pages/ManageMosques";
 import NotFound from "./pages/NotFound";
-import Auth from "./pages/Auth";
 import UserView from "./pages/UserView";
 import AdminLogin from "./pages/AdminLogin";
+import PublicView from "./pages/PublicView";
 
 const queryClient = new QueryClient();
 
@@ -49,7 +49,7 @@ const ProtectedRoute = ({ children, adminOnly = false }: { children: React.React
   }
 
   if (adminOnly && !isAdmin) {
-    return <Navigate to="/user" />;
+    return <Navigate to="/" />;
   }
 
   return <>{children}</>;
@@ -63,8 +63,9 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/admeen" element={<AdminLogin />} />
+          <Route path="/" element={<PublicView />} />
           <Route
-            path="/"
+            path="/admin"
             element={
               <ProtectedRoute adminOnly>
                 <Index />
@@ -76,14 +77,6 @@ const App = () => (
             element={
               <ProtectedRoute adminOnly>
                 <ManageMosques />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/user"
-            element={
-              <ProtectedRoute>
-                <UserView />
               </ProtectedRoute>
             }
           />

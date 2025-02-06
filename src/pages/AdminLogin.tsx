@@ -25,14 +25,16 @@ const AdminLogin = () => {
       if (error) throw error;
 
       if (data.user) {
-        const { data: profileData } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('is_admin')
           .eq('id', data.user.id)
           .single();
 
+        if (profileError) throw profileError;
+
         if (profileData?.is_admin) {
-          navigate('/');
+          navigate('/admin');
         } else {
           // If not admin, sign out and show error
           await supabase.auth.signOut();
