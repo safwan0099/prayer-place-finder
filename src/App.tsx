@@ -10,6 +10,7 @@ import ManageMosques from "./pages/ManageMosques";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import UserView from "./pages/UserView";
+import AdminLogin from "./pages/AdminLogin";
 
 const queryClient = new QueryClient();
 
@@ -44,7 +45,7 @@ const ProtectedRoute = ({ children, adminOnly = false }: { children: React.React
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth" />;
+    return <Navigate to="/admeen" />;
   }
 
   if (adminOnly && !isAdmin) {
@@ -61,7 +62,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/auth" element={<Auth />} />
+          <Route path="/admeen" element={<AdminLogin />} />
           <Route
             path="/"
             element={
