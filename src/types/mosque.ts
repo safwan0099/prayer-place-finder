@@ -1,3 +1,5 @@
+import { Json } from "@/integrations/supabase/types";
+
 export interface Mosque {
   id?: string;
   name: string;
@@ -25,3 +27,18 @@ export interface MosqueFormData {
   longitude: number | null;
   operating_hours: OperatingHours[];
 }
+
+// Helper function to transform JSON data to OperatingHours array
+export const parseOperatingHours = (hours: Json): OperatingHours[] => {
+  if (!hours || !Array.isArray(hours)) return [];
+  return hours.map(hour => ({
+    day: String(hour.day || ''),
+    openTime: String(hour.openTime || ''),
+    closeTime: String(hour.closeTime || '')
+  }));
+};
+
+// Helper function to ensure operating hours are in the correct format for Supabase
+export const formatOperatingHours = (hours: OperatingHours[]): Json => {
+  return hours as unknown as Json;
+};

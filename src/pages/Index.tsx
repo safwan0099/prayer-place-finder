@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
 import MosqueForm from '@/components/MosqueForm';
 import MosqueList from '@/components/MosqueList';
-import { Mosque, MosqueFormData } from '@/types/mosque';
+import { Mosque, MosqueFormData, parseOperatingHours, formatOperatingHours } from '@/types/mosque';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -34,7 +34,11 @@ const Index = () => {
       }
 
       if (data) {
-        setMosques(data);
+        const parsedMosques = data.map(mosque => ({
+          ...mosque,
+          operating_hours: parseOperatingHours(mosque.operating_hours)
+        }));
+        setMosques(parsedMosques);
       }
     };
 
@@ -59,6 +63,7 @@ const Index = () => {
       ...data,
       latitude: selectedLocation.lat,
       longitude: selectedLocation.lng,
+      operating_hours: formatOperatingHours(data.operating_hours)
     };
 
     const { data: insertedMosque, error } = await supabase
@@ -77,7 +82,11 @@ const Index = () => {
     }
 
     if (insertedMosque) {
-      setMosques([...mosques, insertedMosque]);
+      const parsedMosque = {
+        ...insertedMosque,
+        operating_hours: parseOperatingHours(insertedMosque.operating_hours)
+      };
+      setMosques([...mosques, parsedMosque]);
       setSelectedLocation({ lat: null, lng: null });
       
       toast({

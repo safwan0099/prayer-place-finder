@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Mosque } from '@/types/mosque';
+import { Mosque, parseOperatingHours, formatOperatingHours } from '@/types/mosque';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import MosqueForm from '@/components/MosqueForm';
@@ -20,7 +20,10 @@ const ManageMosques = () => {
         .select('*');
       
       if (error) throw error;
-      return data as Mosque[];
+      return data.map(mosque => ({
+        ...mosque,
+        operating_hours: parseOperatingHours(mosque.operating_hours)
+      })) as Mosque[];
     }
   });
 
@@ -32,7 +35,7 @@ const ManageMosques = () => {
         description: data.description,
         website_url: data.website_url,
         is_restricted: data.is_restricted,
-        operating_hours: data.operating_hours,
+        operating_hours: formatOperatingHours(data.operating_hours),
       })
       .eq('id', selectedMosque?.id);
 
