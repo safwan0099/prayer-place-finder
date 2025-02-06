@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Map from '@/components/Map';
 import MosqueList from '@/components/MosqueList';
-import { Mosque } from '@/types/mosque';
+import { Mosque, parseOperatingHours } from '@/types/mosque';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -26,7 +26,12 @@ const PublicView = () => {
       }
 
       if (data) {
-        setMosques(data);
+        // Transform the data to match the Mosque type
+        const transformedMosques: Mosque[] = data.map(mosque => ({
+          ...mosque,
+          operating_hours: parseOperatingHours(mosque.operating_hours)
+        }));
+        setMosques(transformedMosques);
       }
     };
 
