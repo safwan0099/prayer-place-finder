@@ -31,11 +31,21 @@ export interface MosqueFormData {
 // Helper function to transform JSON data to OperatingHours array
 export const parseOperatingHours = (hours: Json): OperatingHours[] => {
   if (!hours || !Array.isArray(hours)) return [];
-  return hours.map(hour => ({
-    day: String(hour.day || ''),
-    openTime: String(hour.openTime || ''),
-    closeTime: String(hour.closeTime || '')
-  }));
+  
+  return hours.map(hour => {
+    if (typeof hour === 'object' && hour !== null) {
+      return {
+        day: String((hour as Record<string, unknown>).day || ''),
+        openTime: String((hour as Record<string, unknown>).openTime || ''),
+        closeTime: String((hour as Record<string, unknown>).closeTime || '')
+      };
+    }
+    return {
+      day: '',
+      openTime: '',
+      closeTime: ''
+    };
+  });
 };
 
 // Helper function to ensure operating hours are in the correct format for Supabase
