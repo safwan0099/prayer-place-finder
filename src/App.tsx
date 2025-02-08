@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import UserView from "./pages/UserView";
 import AdminLogin from "./pages/AdminLogin";
 import PublicView from "./pages/PublicView";
+import QuranQibla from "./pages/QuranQibla";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +66,7 @@ const App = () => (
         <Routes>
           <Route path="/admeen" element={<AdminLogin />} />
           <Route path="/" element={<PublicView />} />
+          <Route path="/quran-qibla" element={<QuranQibla />} />
           <Route
             path="/admin"
             element={
