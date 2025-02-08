@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Mosque } from '@/types/mosque';
 import { isOpen } from '@/utils/timeUtils';
@@ -10,6 +11,7 @@ interface MapProps {
 const Map = ({ mosques, onLocationSelect }: MapProps) => {
   const mapRef = useRef<google.maps.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const markersRef = useRef<google.maps.Marker[]>([]);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number }>({ lat: 0, lng: 0 });
 
   useEffect(() => {
@@ -27,7 +29,7 @@ const Map = ({ mosques, onLocationSelect }: MapProps) => {
 
         mapRef.current = map;
 
-        // Add click handler for location selection with cursor style
+        // Add click handler for location selection
         if (onLocationSelect) {
           mapContainerRef.current.style.cursor = 'crosshair';
           map.addListener('click', (e: google.maps.MapMouseEvent) => {
@@ -37,11 +39,18 @@ const Map = ({ mosques, onLocationSelect }: MapProps) => {
           });
         }
 
+        // Clear existing markers
+        markersRef.current.forEach(marker => marker.setMap(null));
+        markersRef.current = [];
+
         // Add markers for mosques
         mosques.forEach((mosque) => {
+          console.log('Adding marker for mosque:', mosque.name, mosque.latitude, mosque.longitude);
+          
           const marker = new google.maps.Marker({
             position: { lat: mosque.latitude, lng: mosque.longitude },
-            map,
+            map: map,
+            title: mosque.name,
             icon: {
               path: google.maps.SymbolPath.CIRCLE,
               fillColor: isOpen(mosque.operating_hours) ? '#059669' : '#ef4444',
@@ -74,6 +83,8 @@ const Map = ({ mosques, onLocationSelect }: MapProps) => {
           marker.addListener('click', () => {
             infoWindow.open(map, marker);
           });
+
+          markersRef.current.push(marker);
         });
       });
     };
@@ -81,15 +92,19 @@ const Map = ({ mosques, onLocationSelect }: MapProps) => {
     initMap();
 
     return () => {
-      if (mapContainerRef.current) {
-        mapContainerRef.current.style.cursor = 'default';
+      markersRef.current.forEach(marker => marker.setMap(null));
+      if (mapRef.current) {
+        const listeners = mapRef.current.listeners;
+        if (listeners) {
+          google.maps.event.clearInstanceListeners(mapRef.current);
+        }
       }
     };
   }, [mosques, onLocationSelect]);
 
   return (
     <div className="relative w-full h-[500px] rounded-lg overflow-hidden shadow-lg">
-      <div ref={mapContainerRef} className="absolute inset-0" />
+      <div ref={mapContainer} className="absolute inset-0" />
     </div>
   );
 };
