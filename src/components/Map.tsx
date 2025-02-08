@@ -94,17 +94,14 @@ const Map = ({ mosques, onLocationSelect }: MapProps) => {
     return () => {
       markersRef.current.forEach(marker => marker.setMap(null));
       if (mapRef.current) {
-        const listeners = mapRef.current.listeners;
-        if (listeners) {
-          google.maps.event.clearInstanceListeners(mapRef.current);
-        }
+        google.maps.event.clearInstanceListeners(mapRef.current);
       }
     };
   }, [mosques, onLocationSelect]);
 
   return (
     <div className="relative w-full h-[500px] rounded-lg overflow-hidden shadow-lg">
-      <div ref={mapContainer} className="absolute inset-0" />
+      <div ref={mapContainerRef} className="absolute inset-0" />
     </div>
   );
 };
