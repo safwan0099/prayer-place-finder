@@ -1,9 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
 import Map from '@/components/Map';
 import MosqueList from '@/components/MosqueList';
 import { Mosque, parseOperatingHours } from '@/types/mosque';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { MapPin, Clock, Phone, Instagram, MessageCircle } from 'lucide-react';
 
 const PublicView = () => {
   const [mosques, setMosques] = useState<Mosque[]>([]);
@@ -26,7 +28,6 @@ const PublicView = () => {
       }
 
       if (data) {
-        // Transform the data to match the Mosque type
         const transformedMosques: Mosque[] = data.map(mosque => ({
           ...mosque,
           operating_hours: parseOperatingHours(mosque.operating_hours)
@@ -35,7 +36,6 @@ const PublicView = () => {
       }
     };
 
-    // Get user's location
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setUserLocation({
@@ -57,30 +57,95 @@ const PublicView = () => {
   }, [toast]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Mosque Finder</h1>
-          {/* <a 
-            href="/admeen"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Admin Login
-          </a> */}
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-lg shadow-sm">
+        <div className="container mx-auto py-6 px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="text-center md:text-left">
+              <h1 className="text-3xl md:text-4xl font-bold text-emerald-800">
+                Prayer Place Finder
+              </h1>
+              <p className="text-gray-600 mt-2">
+                Find nearby mosques and prayer times
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="text-emerald-600" />
+              <span className="text-gray-700">
+                {userLocation ? 'Location found' : 'Enable location services'}
+              </span>
+            </div>
+          </div>
         </div>
-        
-        <div className="space-y-8">
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto py-8 px-4 space-y-8">
+        {/* Map Section */}
+        <section className="bg-white rounded-2xl shadow-lg p-4 md:p-6">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <MapPin className="text-emerald-600" />
+            Mosque Map
+          </h2>
           <Map
             mosques={mosques}
             onLocationSelect={undefined}
           />
-          
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Nearby Mosques</h2>
-            <MosqueList mosques={mosques} userLocation={userLocation || undefined} />
+        </section>
+
+        {/* Mosque List Section */}
+        <section className="bg-white rounded-2xl shadow-lg p-4 md:p-6">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <Clock className="text-emerald-600" />
+            Nearby Mosques
+          </h2>
+          <MosqueList mosques={mosques} userLocation={userLocation || undefined} />
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-emerald-800 text-white mt-16">
+        <div className="container mx-auto py-8 px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Contact Us</h3>
+              <div className="space-y-4">
+                <a 
+                  href="https://wa.me/your-whatsapp-number" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 hover:text-emerald-300 transition-colors"
+                >
+                  <MessageCircle size={20} />
+                  <span>WhatsApp</span>
+                </a>
+                <a 
+                  href="https://instagram.com/your-instagram" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 hover:text-emerald-300 transition-colors"
+                >
+                  <Instagram size={20} />
+                  <span>Instagram</span>
+                </a>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Need Help?</h3>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Phone size={20} />
+                  <span>Emergency Contact: XXX-XXX-XXXX</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-8 pt-8 border-t border-emerald-700 text-center text-sm">
+            <p>&copy; {new Date().getFullYear()} Prayer Place Finder. All rights reserved.</p>
           </div>
         </div>
-      </div>
+      </footer>
     </div>
   );
 };
