@@ -23,21 +23,29 @@ const QuranQibla = () => {
                 </p>
                 <Button
                   onClick={() => window.open('https://quran.com', '_blank')}
-                  className="bg-emerald-600 hover:bg-emerald-700 w-full mb-2"
+                  className="bg-emerald-600 hover:bg-emerald-700"
                 >
                   Open Quran.com
                 </Button>
               </div>
               <div>
                 <p className="text-gray-600 mb-4">
-                  Learn how to properly recite with Niyyah
+                  Learn how to properly recite with Niyyah App
                 </p>
-                <Button
-                  onClick={() => window.open('https://niyyah.com', '_blank')}
-                  className="bg-emerald-600 hover:bg-emerald-700 w-full"
-                >
-                  Open Niyyah.com
-                </Button>
+                <div className="space-x-2">
+                  <Button
+                    onClick={() => window.open('https://apps.apple.com/us/app/niyyah-quran-learning-app/id1570935695', '_blank')}
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    iOS App
+                  </Button>
+                  <Button
+                    onClick={() => window.open('https://play.google.com/store/apps/details?id=com.niyyah.app', '_blank')}
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    Android App
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -54,7 +62,7 @@ const QuranQibla = () => {
               </p>
               <Button
                 onClick={() => window.open('https://qiblafinder.withgoogle.com', '_blank')}
-                className="bg-emerald-600 hover:bg-emerald-700 w-full"
+                className="bg-emerald-600 hover:bg-emerald-700"
               >
                 Find Qibla Direction
               </Button>
@@ -73,7 +81,7 @@ const QuranQibla = () => {
               </p>
               <Button
                 onClick={() => window.open('https://sunnah.com', '_blank')}
-                className="bg-emerald-600 hover:bg-emerald-700 w-full"
+                className="bg-emerald-600 hover:bg-emerald-700"
               >
                 Read Hadith
               </Button>
@@ -91,8 +99,8 @@ const QuranQibla = () => {
                 Find authentic Duas for various occasions
               </p>
               <Button
-                onClick={() => window.open('https://myduaapp.com', '_blank')}
-                className="bg-emerald-600 hover:bg-emerald-700 w-full"
+                onClick={() => window.open('https://lifewithallah.com/dhikr-dua/', '_blank')}
+                className="bg-emerald-600 hover:bg-emerald-700"
               >
                 Browse Duas
               </Button>
