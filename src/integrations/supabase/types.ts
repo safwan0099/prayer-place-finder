@@ -19,6 +19,8 @@ export type Database = {
           longitude: number
           name: string
           operating_hours: Json
+          osm_id: string | null
+          source: string
           website_url: string | null
         }
         Insert: {
@@ -30,6 +32,8 @@ export type Database = {
           longitude: number
           name: string
           operating_hours?: Json
+          osm_id?: string | null
+          source?: string
           website_url?: string | null
         }
         Update: {
@@ -41,6 +45,8 @@ export type Database = {
           longitude?: number
           name?: string
           operating_hours?: Json
+          osm_id?: string | null
+          source?: string
           website_url?: string | null
         }
         Relationships: []
