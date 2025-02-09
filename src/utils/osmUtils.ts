@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Mosque } from '@/types/mosque';
+import { Mosque, formatOperatingHours } from '@/types/mosque';
 
 interface OSMNode {
   id: number;
@@ -47,7 +47,7 @@ export const fetchOSMMosques = async () => {
         latitude: node.lat,
         longitude: node.lon,
         is_restricted: false,
-        operating_hours: [], // Default empty array as OSM opening hours format differs
+        operating_hours: [], // Default empty array
         source: 'osm',
         osm_id: node.id.toString(),
       };
@@ -60,10 +60,13 @@ export const fetchOSMMosques = async () => {
         .single();
 
       if (!existingMosque) {
-        // Insert new mosque
+        // Insert new mosque with properly formatted operating_hours
         const { error } = await supabase
           .from('mosques')
-          .insert([mosque]);
+          .insert([{
+            ...mosque,
+            operating_hours: formatOperatingHours(mosque.operating_hours)
+          }]);
 
         if (error) {
           console.error('Error inserting mosque:', error);
