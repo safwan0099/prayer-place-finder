@@ -98,7 +98,7 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
 
                 <div className="flex items-center text-gray-600">
                   <Clock size={14} className="mr-1" />
-                  {mosque.operating_hours[0].openTime} - {mosque.operating_hours[0].closeTime}
+                 
                 </div>
               </div>
             </Card>
