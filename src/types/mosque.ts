@@ -10,6 +10,8 @@ export interface Mosque {
   longitude: number;
   operating_hours: OperatingHours[];
   created_at?: string;
+  source?: string;
+  osm_id?: string;
 }
 
 export interface OperatingHours {

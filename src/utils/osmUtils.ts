@@ -40,7 +40,7 @@ export const fetchOSMMosques = async () => {
     
     // Transform OSM data to our Mosque format and store in Supabase
     for (const node of data.elements) {
-      const mosque: Partial<Mosque> = {
+      const mosque = {
         name: node.tags.name || `Mosque ${node.id}`,
         description: node.tags.description || null,
         website_url: node.tags['contact:website'] || null,
