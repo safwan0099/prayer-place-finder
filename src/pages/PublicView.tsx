@@ -1,13 +1,16 @@
 
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
 import MosqueList from '@/components/MosqueList';
 import { Mosque, parseOperatingHours } from '@/types/mosque';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { MapPin, Clock, Phone, Instagram, MessageCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const PublicView = () => {
+  const navigate = useNavigate();
   const [mosques, setMosques] = useState<Mosque[]>([]);
   const { toast } = useToast();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -63,19 +66,22 @@ const PublicView = () => {
         <div className="container mx-auto py-6 px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-center md:text-left">
-              <h1 className="text-3xl md:text-4xl font-bold text-emerald-800">
+              <h1 
+                onClick={() => navigate('/')} 
+                className="text-3xl md:text-4xl font-bold text-emerald-800 cursor-pointer hover:text-emerald-700 transition-colors"
+              >
                 Prayer Place Finder
               </h1>
               <p className="text-gray-600 mt-2">
                 Find nearby mosques and prayer times
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="text-emerald-600" />
-              <span className="text-gray-700">
-                {userLocation ? 'Location found' : 'Enable location services'}
-              </span>
-            </div>
+            <Button
+              onClick={() => navigate('/quran-qibla')}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              Islamic Resources
+            </Button>
           </div>
         </div>
       </header>
@@ -151,3 +157,4 @@ const PublicView = () => {
 };
 
 export default PublicView;
+
