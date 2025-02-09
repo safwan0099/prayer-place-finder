@@ -8,8 +8,6 @@ import { Mosque, MosqueFormData, parseOperatingHours, formatOperatingHours } fro
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { fetchOSMMosques } from '@/utils/osmUtils';
-import { RefreshCw } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -19,7 +17,6 @@ const Index = () => {
     lng: number | null;
   }>({ lat: null, lng: null });
   const { toast } = useToast();
-  const [isLoadingOSM, setIsLoadingOSM] = useState(false);
 
   // Load mosques from database
   useEffect(() => {
@@ -100,60 +97,12 @@ const Index = () => {
     }
   };
 
-  const handleFetchOSM = async () => {
-    setIsLoadingOSM(true);
-    const success = await fetchOSMMosques();
-    
-    if (success) {
-      // Refresh the mosque list
-      const { data, error } = await supabase
-        .from('mosques')
-        .select('*');
-
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to refresh mosque list",
-          variant: "destructive",
-        });
-      } else if (data) {
-        const parsedMosques = data.map(mosque => ({
-          ...mosque,
-          operating_hours: parseOperatingHours(mosque.operating_hours)
-        }));
-        setMosques(parsedMosques);
-        toast({
-          title: "Success",
-          description: "Successfully imported mosques from OpenStreetMap",
-        });
-      }
-    } else {
-      toast({
-        title: "Error",
-        description: "Failed to fetch mosques from OpenStreetMap",
-        variant: "destructive",
-      });
-    }
-    setIsLoadingOSM(false);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Mosque Finder</h1>
-          <div className="flex gap-4">
-            <Button 
-              onClick={handleFetchOSM} 
-              disabled={isLoadingOSM}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoadingOSM ? 'animate-spin' : ''}`} />
-              {isLoadingOSM ? 'Importing...' : 'Import from OpenStreetMap'}
-            </Button>
-            <Button onClick={() => navigate('/manage')}>Manage Mosques</Button>
-          </div>
+          <Button onClick={() => navigate('/manage')}>Manage Mosques</Button>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
