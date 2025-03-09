@@ -4,7 +4,7 @@ import { Mosque } from '@/types/mosque';
 import { isOpen } from '@/utils/timeUtils';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ExternalLink, Clock, MapPin, Globe, VideoIcon } from 'lucide-react';
+import { ExternalLink, Clock, MapPin, Globe, VideoIcon, Info } from 'lucide-react';
 
 interface MosqueListProps {
   mosques: Mosque[];
@@ -54,6 +54,10 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
                       {distance} km away
                     </p>
                   )}
+                  <p className="text-gray-500 text-xs mt-1 flex items-center gap-1">
+                    <Info size={12} />
+                    Source: {mosque.source === 'google' ? 'Google Maps' : 'Manual Entry'}
+                  </p>
                 </div>
                 <div className="flex flex-col gap-2 items-end">
                   <div className={`px-2 py-1 rounded-full text-xs font-medium ${

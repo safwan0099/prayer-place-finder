@@ -1,14 +1,17 @@
+
 import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Mosque, parseOperatingHours } from '@/types/mosque';
 import Map from '@/components/Map';
 import MosqueList from '@/components/MosqueList';
+import { Button } from '@/components/ui/button';
 
 const UserView = () => {
   const [mosques, setMosques] = useState<Mosque[]>([]);
   const { toast } = useToast();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Get user's location
@@ -56,12 +59,75 @@ const UserView = () => {
     fetchMosques();
   }, [toast]);
 
+  const fetchGoogleMosques = async () => {
+    if (!userLocation) {
+      toast({
+        title: "Location Required",
+        description: "We need your location to find nearby mosques",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const response = await supabase.functions.invoke('fetch-mosques', {
+        body: { 
+          lat: userLocation.lat, 
+          lng: userLocation.lng,
+          radius: 5000 // 5km radius
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      const { mosques: fetchedMosques } = response.data;
+      
+      if (fetchedMosques && Array.isArray(fetchedMosques)) {
+        const parsedMosques = fetchedMosques.map(mosque => ({
+          ...mosque,
+          operating_hours: parseOperatingHours(mosque.operating_hours)
+        }));
+        
+        setMosques(parsedMosques);
+        
+        toast({
+          title: "Success",
+          description: `Found ${parsedMosques.length} mosques in your area`,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching Google mosques:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch mosques from Google API",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Nearby Mosques</h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl font-bold text-gray-900">Nearby Mosques</h1>
+          <Button 
+            onClick={fetchGoogleMosques} 
+            disabled={isLoading || !userLocation}
+            variant="outline"
+          >
+            {isLoading ? "Loading..." : "Find Mosques Near Me"}
+          </Button>
+        </div>
         <Map mosques={mosques} onLocationSelect={(lat, lng) => setUserLocation({ lat, lng })} />
-        <MosqueList mosques={mosques} userLocation={userLocation} />
+        <div className="mt-6">
+          <MosqueList mosques={mosques} userLocation={userLocation} />
+        </div>
       </div>
     </div>
   );
