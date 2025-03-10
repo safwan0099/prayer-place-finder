@@ -47,12 +47,16 @@ const Map = ({ mosques, onLocationSelect, showType = 'all' }: MapProps) => {
         // Filter mosques based on the showType prop
         const filteredMosques = mosques.filter(mosque => {
           if (showType === 'all') return true;
-          return mosque.type === showType || (mosque.type === undefined && showType === 'mosque'); // Default to mosque type if not specified
+          return mosque.type === showType;
         });
+
+        console.log(`Displaying ${filteredMosques.length} places on the map (filter: ${showType})`);
 
         // Add markers for filtered mosques
         filteredMosques.forEach((mosque) => {
-          console.log('Adding marker for mosque:', mosque.name, mosque.latitude, mosque.longitude, 'Type:', mosque.type || 'mosque');
+          console.log('Adding marker for:', mosque.name, 'Type:', mosque.type);
+          
+          const markerColor = mosque.type === 'musalla' ? '#8B5CF6' : '#059669'; // Purple for musalla, Green for mosque
           
           const marker = new google.maps.Marker({
             position: { lat: mosque.latitude, lng: mosque.longitude },
@@ -60,7 +64,7 @@ const Map = ({ mosques, onLocationSelect, showType = 'all' }: MapProps) => {
             title: mosque.name,
             icon: {
               path: google.maps.SymbolPath.CIRCLE,
-              fillColor: isOpen(mosque.operating_hours) ? '#059669' : '#ef4444',
+              fillColor: isOpen(mosque.operating_hours) ? markerColor : '#ef4444',
               fillOpacity: 1,
               strokeColor: '#ffffff',
               strokeWeight: 2,

@@ -12,6 +12,7 @@ const UserView = () => {
   const { toast } = useToast();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showType, setShowType] = useState<'mosque' | 'musalla' | 'all'>('all');
 
   useEffect(() => {
     // Get user's location
@@ -113,6 +114,11 @@ const UserView = () => {
     }
   };
 
+  const filteredMosques = mosques.filter(mosque => {
+    if (showType === 'all') return true;
+    return mosque.type === showType;
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -126,9 +132,47 @@ const UserView = () => {
             {isLoading ? "Loading..." : "Find Mosques Near Me"}
           </Button>
         </div>
-        <Map mosques={mosques} onLocationSelect={(lat, lng) => setUserLocation({ lat, lng })} />
+        
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Filter By Type</h2>
+          <div className="flex gap-2">
+            <Button 
+              variant={showType === 'all' ? 'default' : 'outline'} 
+              onClick={() => setShowType('all')}
+              className="px-4 py-2"
+            >
+              All
+            </Button>
+            <Button 
+              variant={showType === 'mosque' ? 'default' : 'outline'} 
+              onClick={() => setShowType('mosque')}
+              className="px-4 py-2"
+            >
+              Mosques
+            </Button>
+            <Button 
+              variant={showType === 'musalla' ? 'default' : 'outline'} 
+              onClick={() => setShowType('musalla')}
+              className="px-4 py-2"
+            >
+              Musallas
+            </Button>
+          </div>
+        </div>
+        
+        <Map 
+          mosques={filteredMosques} 
+          onLocationSelect={(lat, lng) => setUserLocation({ lat, lng })} 
+          showType={showType}
+        />
+        
         <div className="mt-6">
-          <MosqueList mosques={mosques} userLocation={userLocation} />
+          <h2 className="text-xl font-semibold mb-4">
+            {showType === 'mosque' ? 'Nearby Mosques' : 
+             showType === 'musalla' ? 'Nearby Musallas' : 
+             'All Nearby Places'}
+          </h2>
+          <MosqueList mosques={filteredMosques} userLocation={userLocation} />
         </div>
       </div>
     </div>
