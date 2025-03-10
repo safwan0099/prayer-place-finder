@@ -21,7 +21,7 @@ const DAYS_OF_WEEK = [
 ];
 
 const MosqueForm = ({ onSubmit, selectedLocation, initialValues, onLocationUpdate }: MosqueFormProps) => {
-  const { register, handleSubmit, reset, formState: { errors }, watch } = useForm<MosqueFormData>({
+  const { register, handleSubmit, reset, formState: { errors }, watch, setValue } = useForm<MosqueFormData>({
     defaultValues: initialValues || {
       name: '',
       description: '',
@@ -38,7 +38,18 @@ const MosqueForm = ({ onSubmit, selectedLocation, initialValues, onLocationUpdat
     }
   });
 
+  // Use watch to get current values
   const selectedType = watch('type');
+  const isRestricted = watch('is_restricted');
+
+  // Set up event handlers for the radio buttons
+  const handleTypeChange = (value: string) => {
+    setValue('type', value as 'mosque' | 'musalla');
+  };
+
+  const handleAccessTypeChange = (value: string) => {
+    setValue('is_restricted', value === 'true');
+  };
 
   const onSubmitWrapper = async (data: MosqueFormData) => {
     await onSubmit(data);
@@ -85,30 +96,40 @@ const MosqueForm = ({ onSubmit, selectedLocation, initialValues, onLocationUpdat
 
         <div>
           <Label>Type</Label>
-          <RadioGroup defaultValue={initialValues?.type || "mosque"} className="mt-2">
+          <RadioGroup 
+            value={selectedType} 
+            onValueChange={handleTypeChange} 
+            className="mt-2"
+          >
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="mosque" id="mosque-type" {...register('type')} />
+              <RadioGroupItem value="mosque" id="mosque-type" />
               <Label htmlFor="mosque-type">Mosque</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="musalla" id="musalla-type" {...register('type')} />
+              <RadioGroupItem value="musalla" id="musalla-type" />
               <Label htmlFor="musalla-type">Musalla</Label>
             </div>
           </RadioGroup>
+          <input type="hidden" {...register('type')} value={selectedType} />
         </div>
 
         <div>
           <Label>Access Type</Label>
-          <RadioGroup defaultValue={initialValues?.is_restricted ? "true" : "false"} className="mt-2">
+          <RadioGroup 
+            value={isRestricted ? "true" : "false"} 
+            onValueChange={handleAccessTypeChange} 
+            className="mt-2"
+          >
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="false" id="public" {...register('is_restricted')} />
+              <RadioGroupItem value="false" id="public" />
               <Label htmlFor="public">Open to Everyone</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="true" id="restricted" {...register('is_restricted')} />
+              <RadioGroupItem value="true" id="restricted" />
               <Label htmlFor="restricted">Restricted Access</Label>
             </div>
           </RadioGroup>
+          <input type="hidden" {...register('is_restricted')} value={isRestricted ? "true" : "false"} />
         </div>
 
         <div className="space-y-4">
