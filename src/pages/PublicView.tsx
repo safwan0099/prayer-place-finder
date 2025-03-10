@@ -99,7 +99,7 @@ const PublicView = () => {
       {/* Main Content */}
       <main className="container mx-auto py-8 px-4 space-y-8">
         {/* Filter Buttons */}
-        <div className="flex space-x-4 mb-4">
+        {/* <div className="flex space-x-4 mb-4">
           <button onClick={() => handleTypeChange('all')} className="btn">
             All
           </button>
@@ -109,7 +109,7 @@ const PublicView = () => {
           <button onClick={() => handleTypeChange('musalla')} className="btn">
             Musallas
           </button>
-        </div>
+        </div> */}
 
         {/* Map Section */}
         <section className="bg-white rounded-2xl shadow-lg p-4 md:p-6">
