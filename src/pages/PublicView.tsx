@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -14,6 +13,8 @@ const PublicView = () => {
   const [mosques, setMosques] = useState<Mosque[]>([]);
   const { toast } = useToast();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [showType, setShowType] = useState<'all' | 'mosque' | 'musalla'>('all');
+  const [expandedMosqueId, setExpandedMosqueId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMosques = async () => {
@@ -60,6 +61,14 @@ const PublicView = () => {
     fetchMosques();
   }, [toast]);
 
+  const handleTypeChange = (type: 'all' | 'mosque' | 'musalla') => {
+    setShowType(type);
+  };
+
+  const toggleExpandMosque = (id: string) => {
+    setExpandedMosqueId(expandedMosqueId === id ? null : id);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
       {/* Header */}
@@ -89,16 +98,52 @@ const PublicView = () => {
 
       {/* Main Content */}
       <main className="container mx-auto py-8 px-4 space-y-8">
+        {/* Filter Buttons */}
+        <div className="flex space-x-4 mb-4">
+          <button onClick={() => handleTypeChange('all')} className="btn">
+            All
+          </button>
+          <button onClick={() => handleTypeChange('mosque')} className="btn">
+            Mosques
+          </button>
+          <button onClick={() => handleTypeChange('musalla')} className="btn">
+            Musallas
+          </button>
+        </div>
+
         {/* Map Section */}
         <section className="bg-white rounded-2xl shadow-lg p-4 md:p-6">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <MapPin className="text-emerald-600" />
-            Mosque Map
-          </h2>
-          <Map
-            mosques={mosques}
-            onLocationSelect={undefined}
-          />
+          <div className="lg:col-span-2 space-y-8">
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-semibold text-gray-900">Nearby Places</h2>
+                <div className="flex gap-2">
+                  <Button 
+                    variant={showType === 'all' ? 'default' : 'outline'} 
+                    onClick={() => setShowType('all')}
+                  >
+                    All
+                  </Button>
+                  <Button 
+                    variant={showType === 'mosque' ? 'default' : 'outline'} 
+                    onClick={() => setShowType('mosque')}
+                  >
+                    Mosques
+                  </Button>
+                  <Button 
+                    variant={showType === 'musalla' ? 'default' : 'outline'} 
+                    onClick={() => setShowType('musalla')}
+                  >
+                    Musallas
+                  </Button>
+                </div>
+              </div>
+              <Map
+                mosques={mosques.filter(mosque => showType === 'all' || mosque.type === showType)}
+                onLocationSelect={undefined}
+              />
+            </div>
+          </div>
         </section>
 
         {/* Mosque List Section */}
@@ -107,7 +152,32 @@ const PublicView = () => {
             <Clock className="text-emerald-600" />
             Nearby Mosques
           </h2>
-          <MosqueList mosques={mosques} userLocation={userLocation || undefined} />
+          <div className="space-y-4">
+            {mosques.filter(mosque => showType === 'all' || mosque.type === showType).map(mosque => (
+              <div key={mosque.id} className={`p-4 border rounded-lg ${expandedMosqueId === mosque.id ? 'bg-gray-100' : ''}`} onClick={() => toggleExpandMosque(mosque.id)}>
+                <h3 className="text-lg font-semibold">{mosque.name}</h3>
+                <p className="text-gray-600">{userLocation ? `${calculateDistance(mosque)} km away` : 'Location unknown'}</p>
+                <p className="text-blue-600">
+                  <a href={`https://www.google.com/maps/dir/?api=1&destination=${mosque.latitude},${mosque.longitude}`} target="_blank" rel="noopener noreferrer">Get Directions</a>
+                </p>
+                {mosque.website_url && (
+                  <p className="text-blue-600">
+                    <a href={mosque.website_url} target="_blank" rel="noopener noreferrer">Visit Website</a>
+                  </p>
+                )}
+                {expandedMosqueId === mosque.id && (
+                  <div className="mt-2">
+                    <p className="text-gray-500">Description: {mosque.description}</p>
+                    <p className="text-gray-500">Operating Hours: {mosque.operating_hours.map(hour => (
+                      <span key={hour.day}>
+                        {hour.day}: {hour.openTime} - {hour.closeTime}
+                      </span>
+                    )).reduce((prev, curr) => [prev, ', ', curr])}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </section>
       </main>
 
