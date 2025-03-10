@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
 import MosqueList from '@/components/MosqueList';
-import { Mosque, parseOperatingHours } from '@/types/mosque';
+import { Mosque, parseOperatingHours, formatMosqueType } from '@/types/mosque';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { MapPin, Clock, Phone, Instagram, MessageCircle } from 'lucide-react';
@@ -33,7 +33,8 @@ const PublicView = () => {
       if (data) {
         const transformedMosques: Mosque[] = data.map(mosque => ({
           ...mosque,
-          operating_hours: parseOperatingHours(mosque.operating_hours)
+          operating_hours: parseOperatingHours(mosque.operating_hours),
+          type: formatMosqueType(mosque.type)
         }));
         setMosques(transformedMosques);
       }
@@ -157,4 +158,3 @@ const PublicView = () => {
 };
 
 export default PublicView;
-

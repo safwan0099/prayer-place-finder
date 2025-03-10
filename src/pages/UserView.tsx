@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Mosque, parseOperatingHours } from '@/types/mosque';
+import { Mosque, parseOperatingHours, formatMosqueType } from '@/types/mosque';
 import Map from '@/components/Map';
 import MosqueList from '@/components/MosqueList';
 import { Button } from '@/components/ui/button';
@@ -50,7 +50,8 @@ const UserView = () => {
       if (data) {
         const parsedMosques = data.map(mosque => ({
           ...mosque,
-          operating_hours: parseOperatingHours(mosque.operating_hours)
+          operating_hours: parseOperatingHours(mosque.operating_hours),
+          type: formatMosqueType(mosque.type)
         }));
         setMosques(parsedMosques);
       }
@@ -89,7 +90,8 @@ const UserView = () => {
       if (fetchedMosques && Array.isArray(fetchedMosques)) {
         const parsedMosques = fetchedMosques.map(mosque => ({
           ...mosque,
-          operating_hours: parseOperatingHours(mosque.operating_hours)
+          operating_hours: parseOperatingHours(mosque.operating_hours),
+          type: formatMosqueType(mosque.type)
         }));
         
         setMosques(parsedMosques);

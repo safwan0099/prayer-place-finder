@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
 import MosqueForm from '@/components/MosqueForm';
 import MosqueList from '@/components/MosqueList';
-import { Mosque, MosqueFormData, parseOperatingHours, formatOperatingHours } from '@/types/mosque';
+import { Mosque, MosqueFormData, parseOperatingHours, formatOperatingHours, formatMosqueType } from '@/types/mosque';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -43,7 +43,8 @@ const Index = () => {
       if (data) {
         const parsedMosques = data.map(mosque => ({
           ...mosque,
-          operating_hours: parseOperatingHours(mosque.operating_hours)
+          operating_hours: parseOperatingHours(mosque.operating_hours),
+          type: formatMosqueType(mosque.type)
         }));
         setMosques(parsedMosques);
       }
@@ -106,7 +107,8 @@ const Index = () => {
     if (insertedMosque) {
       const parsedMosque = {
         ...insertedMosque,
-        operating_hours: parseOperatingHours(insertedMosque.operating_hours)
+        operating_hours: parseOperatingHours(insertedMosque.operating_hours),
+        type: formatMosqueType(insertedMosque.type)
       };
       setMosques([...mosques, parsedMosque]);
       setSelectedLocation({ lat: null, lng: null });
@@ -149,7 +151,7 @@ const Index = () => {
         const parsedMosques = fetchedMosques.map(mosque => ({
           ...mosque,
           operating_hours: parseOperatingHours(mosque.operating_hours),
-          type: mosque.type || 'mosque' // Ensure all mosques have a type
+          type: formatMosqueType(mosque.type)
         }));
         
         setMosques(parsedMosques);

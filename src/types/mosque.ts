@@ -33,6 +33,12 @@ export interface MosqueFormData {
   type: 'mosque' | 'musalla';
 }
 
+// Helper function to ensure mosque type is either 'mosque' or 'musalla'
+export const formatMosqueType = (type: string | null | undefined): 'mosque' | 'musalla' => {
+  if (type === 'musalla') return 'musalla';
+  return 'mosque'; // Default to mosque for any other value
+};
+
 // Helper function to transform JSON data to OperatingHours array
 export const parseOperatingHours = (hours: Json): OperatingHours[] => {
   if (!hours || !Array.isArray(hours)) return [];
