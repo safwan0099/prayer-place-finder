@@ -65,7 +65,8 @@ serve(async (req) => {
         is_restricted: false, // Default value
         operating_hours: JSON.stringify([]), // Default empty operating hours
         source: "google",
-        osm_id: place.place_id
+        osm_id: place.place_id,
+        type: 'mosque' // Default type for Google Places API results
       };
     });
 

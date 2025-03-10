@@ -21,6 +21,7 @@ export type Database = {
           operating_hours: Json
           osm_id: string | null
           source: string
+          type: string | null
           website_url: string | null
         }
         Insert: {
@@ -34,6 +35,7 @@ export type Database = {
           operating_hours?: Json
           osm_id?: string | null
           source?: string
+          type?: string | null
           website_url?: string | null
         }
         Update: {
@@ -47,6 +49,7 @@ export type Database = {
           operating_hours?: Json
           osm_id?: string | null
           source?: string
+          type?: string | null
           website_url?: string | null
         }
         Relationships: []

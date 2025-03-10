@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -36,6 +37,7 @@ const ManageMosques = () => {
         website_url: data.website_url,
         is_restricted: data.is_restricted,
         operating_hours: formatOperatingHours(data.operating_hours),
+        type: data.type || 'mosque',
       })
       .eq('id', selectedMosque?.id);
 
@@ -88,7 +90,7 @@ const ManageMosques = () => {
 
         {selectedMosque ? (
           <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Modify Mosque</h2>
+            <h2 className="text-2xl font-semibold mb-4">Modify {selectedMosque.type === 'musalla' ? 'Musalla' : 'Mosque'}</h2>
             <MosqueForm
               onSubmit={handleModify}
               selectedLocation={{ 
@@ -112,6 +114,7 @@ const ManageMosques = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3">Name</th>
+                    <th className="px-6 py-3">Type</th>
                     <th className="px-6 py-3">Description</th>
                     <th className="px-6 py-3">Actions</th>
                   </tr>
@@ -120,6 +123,7 @@ const ManageMosques = () => {
                   {mosques?.map((mosque) => (
                     <tr key={mosque.id} className="border-t">
                       <td className="px-6 py-4">{mosque.name}</td>
+                      <td className="px-6 py-4">{mosque.type === 'musalla' ? 'Musalla' : 'Mosque'}</td>
                       <td className="px-6 py-4">{mosque.description}</td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2">

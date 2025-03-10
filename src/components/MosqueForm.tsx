@@ -19,7 +19,7 @@ const DAYS_OF_WEEK = [
 ];
 
 const MosqueForm = ({ onSubmit, selectedLocation, initialValues }: MosqueFormProps) => {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<MosqueFormData>({
+  const { register, handleSubmit, reset, formState: { errors }, watch } = useForm<MosqueFormData>({
     defaultValues: initialValues || {
       name: '',
       description: '',
@@ -35,6 +35,8 @@ const MosqueForm = ({ onSubmit, selectedLocation, initialValues }: MosqueFormPro
       type: 'mosque'
     }
   });
+
+  const selectedType = watch('type');
 
   const onSubmitWrapper = async (data: MosqueFormData) => {
     await onSubmit(data);
@@ -81,7 +83,7 @@ const MosqueForm = ({ onSubmit, selectedLocation, initialValues }: MosqueFormPro
 
         <div>
           <Label>Type</Label>
-          <RadioGroup defaultValue="mosque" className="mt-2">
+          <RadioGroup defaultValue={initialValues?.type || "mosque"} className="mt-2">
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="mosque" id="mosque-type" {...register('type')} />
               <Label htmlFor="mosque-type">Mosque</Label>
@@ -95,7 +97,7 @@ const MosqueForm = ({ onSubmit, selectedLocation, initialValues }: MosqueFormPro
 
         <div>
           <Label>Access Type</Label>
-          <RadioGroup defaultValue="false" className="mt-2">
+          <RadioGroup defaultValue={initialValues?.is_restricted ? "true" : "false"} className="mt-2">
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="false" id="public" {...register('is_restricted')} />
               <Label htmlFor="public">Open to Everyone</Label>
@@ -144,7 +146,7 @@ const MosqueForm = ({ onSubmit, selectedLocation, initialValues }: MosqueFormPro
       </div>
 
       <Button type="submit" className="w-full">
-        {initialValues ? 'Update' : 'Add'} {initialValues?.type === 'musalla' || (!initialValues && register('type').name === 'musalla') ? 'Musalla' : 'Mosque'}
+        {initialValues ? 'Update' : 'Add'} {selectedType === 'musalla' ? 'Musalla' : 'Mosque'}
       </Button>
     </form>
   );

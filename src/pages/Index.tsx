@@ -149,7 +149,7 @@ const Index = () => {
         const parsedMosques = fetchedMosques.map(mosque => ({
           ...mosque,
           operating_hours: parseOperatingHours(mosque.operating_hours),
-          type: 'mosque' // Set type for fetched mosques
+          type: mosque.type || 'mosque' // Ensure all mosques have a type
         }));
         
         setMosques(parsedMosques);
