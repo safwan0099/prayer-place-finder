@@ -61,6 +61,10 @@ const Map = ({ mosques, onLocationSelect }: MapProps) => {
             },
           });
 
+          const websiteLink = mosque.website_url 
+            ? `<a href="${mosque.website_url}" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 mt-1 block">Visit Website</a>` 
+            : '';
+
           const infoWindow = new google.maps.InfoWindow({
             content: `
               <div class="p-2">
@@ -71,6 +75,7 @@ const Map = ({ mosques, onLocationSelect }: MapProps) => {
                     ${isOpen(mosque.operating_hours) ? 'Open' : 'Closed'}
                   </span>
                 </p>
+                ${websiteLink}
                 <a href="https://www.google.com/maps/dir/?api=1&destination=${mosque.latitude},${mosque.longitude}"
                    target="_blank"
                    class="text-sm text-blue-600 hover:text-blue-800 mt-2 block">
