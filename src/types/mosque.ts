@@ -1,3 +1,4 @@
+
 import { Json } from "@/integrations/supabase/types";
 
 export interface Mosque {
@@ -12,6 +13,7 @@ export interface Mosque {
   created_at?: string;
   source?: string;
   osm_id?: string;
+  type?: 'mosque' | 'musalla';
 }
 
 export interface OperatingHours {
@@ -28,6 +30,7 @@ export interface MosqueFormData {
   latitude: number | null;
   longitude: number | null;
   operating_hours: OperatingHours[];
+  type: 'mosque' | 'musalla';
 }
 
 // Helper function to transform JSON data to OperatingHours array

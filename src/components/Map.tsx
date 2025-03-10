@@ -6,9 +6,10 @@ import { isOpen } from '@/utils/timeUtils';
 interface MapProps {
   mosques: Mosque[];
   onLocationSelect?: (lat: number, lng: number) => void;
+  showType?: 'mosque' | 'musalla' | 'all';
 }
 
-const Map = ({ mosques, onLocationSelect }: MapProps) => {
+const Map = ({ mosques, onLocationSelect, showType = 'all' }: MapProps) => {
   const mapRef = useRef<google.maps.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
@@ -43,9 +44,15 @@ const Map = ({ mosques, onLocationSelect }: MapProps) => {
         markersRef.current.forEach(marker => marker.setMap(null));
         markersRef.current = [];
 
-        // Add markers for mosques
-        mosques.forEach((mosque) => {
-          console.log('Adding marker for mosque:', mosque.name, mosque.latitude, mosque.longitude);
+        // Filter mosques based on the showType prop
+        const filteredMosques = mosques.filter(mosque => {
+          if (showType === 'all') return true;
+          return mosque.type === showType || (mosque.type === undefined && showType === 'mosque'); // Default to mosque type if not specified
+        });
+
+        // Add markers for filtered mosques
+        filteredMosques.forEach((mosque) => {
+          console.log('Adding marker for mosque:', mosque.name, mosque.latitude, mosque.longitude, 'Type:', mosque.type || 'mosque');
           
           const marker = new google.maps.Marker({
             position: { lat: mosque.latitude, lng: mosque.longitude },
@@ -64,12 +71,15 @@ const Map = ({ mosques, onLocationSelect }: MapProps) => {
           const websiteLink = mosque.website_url 
             ? `<a href="${mosque.website_url}" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 mt-1 block">Visit Website</a>` 
             : '';
+          
+          const typeText = mosque.type === 'musalla' ? 'Musalla' : 'Mosque';
 
           const infoWindow = new google.maps.InfoWindow({
             content: `
               <div class="p-2">
                 <h3 class="font-bold">${mosque.name}</h3>
                 <p class="text-sm">${mosque.description || ''}</p>
+                <p class="text-sm mt-1">Type: ${typeText}</p>
                 <p class="text-sm mt-1">
                   Status: <span class="${isOpen(mosque.operating_hours) ? 'text-green-600' : 'text-red-600'}">
                     ${isOpen(mosque.operating_hours) ? 'Open' : 'Closed'}
@@ -102,7 +112,7 @@ const Map = ({ mosques, onLocationSelect }: MapProps) => {
         google.maps.event.clearInstanceListeners(mapRef.current);
       }
     };
-  }, [mosques, onLocationSelect]);
+  }, [mosques, onLocationSelect, showType]);
 
   return (
     <div className="relative w-full h-[500px] rounded-lg overflow-hidden shadow-lg">

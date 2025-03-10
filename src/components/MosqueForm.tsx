@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -30,7 +31,8 @@ const MosqueForm = ({ onSubmit, selectedLocation, initialValues }: MosqueFormPro
         day,
         openTime: '05:00',
         closeTime: '22:00'
-      }))
+      })),
+      type: 'mosque'
     }
   });
 
@@ -75,6 +77,20 @@ const MosqueForm = ({ onSubmit, selectedLocation, initialValues }: MosqueFormPro
             className="mt-1"
             placeholder="https://..."
           />
+        </div>
+
+        <div>
+          <Label>Type</Label>
+          <RadioGroup defaultValue="mosque" className="mt-2">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="mosque" id="mosque-type" {...register('type')} />
+              <Label htmlFor="mosque-type">Mosque</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="musalla" id="musalla-type" {...register('type')} />
+              <Label htmlFor="musalla-type">Musalla</Label>
+            </div>
+          </RadioGroup>
         </div>
 
         <div>
@@ -128,7 +144,7 @@ const MosqueForm = ({ onSubmit, selectedLocation, initialValues }: MosqueFormPro
       </div>
 
       <Button type="submit" className="w-full">
-        Add Mosque
+        {initialValues ? 'Update' : 'Add'} {initialValues?.type === 'musalla' || (!initialValues && register('type').name === 'musalla') ? 'Musalla' : 'Mosque'}
       </Button>
     </form>
   );

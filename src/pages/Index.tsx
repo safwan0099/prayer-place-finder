@@ -21,6 +21,7 @@ const Index = () => {
     lng: number | null;
   }>({ lat: null, lng: null });
   const [isLoading, setIsLoading] = useState(false);
+  const [showType, setShowType] = useState<'mosque' | 'musalla' | 'all'>('all');
   const { toast } = useToast();
 
   // Load mosques from database
@@ -112,7 +113,7 @@ const Index = () => {
       
       toast({
         title: "Success",
-        description: "Mosque has been added successfully",
+        description: `${data.type === 'musalla' ? 'Musalla' : 'Mosque'} has been added successfully`,
       });
     }
   };
@@ -147,7 +148,8 @@ const Index = () => {
       if (fetchedMosques && Array.isArray(fetchedMosques)) {
         const parsedMosques = fetchedMosques.map(mosque => ({
           ...mosque,
-          operating_hours: parseOperatingHours(mosque.operating_hours)
+          operating_hours: parseOperatingHours(mosque.operating_hours),
+          type: 'mosque' // Set type for fetched mosques
         }));
         
         setMosques(parsedMosques);
@@ -168,6 +170,11 @@ const Index = () => {
       setIsLoading(false);
     }
   };
+
+  const filteredMosques = mosques.filter(mosque => {
+    if (showType === 'all') return true;
+    return mosque.type === showType || (mosque.type === undefined && showType === 'mosque');
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -195,14 +202,47 @@ const Index = () => {
           </div>
           
           <div className="lg:col-span-2 space-y-8">
-            <Map
-              mosques={mosques}
-              onLocationSelect={handleLocationSelect}
-            />
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-semibold text-gray-900">Nearby Places</h2>
+                <div className="flex gap-2">
+                  <Button 
+                    variant={showType === 'all' ? 'default' : 'outline'} 
+                    onClick={() => setShowType('all')}
+                  >
+                    All
+                  </Button>
+                  <Button 
+                    variant={showType === 'mosque' ? 'default' : 'outline'} 
+                    onClick={() => setShowType('mosque')}
+                  >
+                    Mosques
+                  </Button>
+                  <Button 
+                    variant={showType === 'musalla' ? 'default' : 'outline'} 
+                    onClick={() => setShowType('musalla')}
+                  >
+                    Musallas
+                  </Button>
+                </div>
+              </div>
+              <Map
+                mosques={mosques}
+                onLocationSelect={handleLocationSelect}
+                showType={showType}
+              />
+            </div>
             
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Nearby Mosques</h2>
-              <MosqueList mosques={mosques} userLocation={userLocation.lat && userLocation.lng ? userLocation : undefined} />
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                {showType === 'mosque' ? 'Nearby Mosques' : 
+                 showType === 'musalla' ? 'Nearby Musallas' : 
+                 'All Nearby Places'}
+              </h2>
+              <MosqueList 
+                mosques={filteredMosques} 
+                userLocation={userLocation.lat && userLocation.lng ? userLocation : undefined} 
+              />
             </div>
           </div>
         </div>
