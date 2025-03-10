@@ -13,7 +13,7 @@ const PublicView = () => {
   const [mosques, setMosques] = useState<Mosque[]>([]);
   const { toast } = useToast();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [showType, setShowType] = useState<'all' | 'mosque' | 'musalla'>('all');
+  const [showType, setShowType] = useState<'all' | 'mosque' | 'musalla'>('musalla');
   const [expandedMosqueId, setExpandedMosqueId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -152,32 +152,7 @@ const PublicView = () => {
             <Clock className="text-emerald-600" />
             Nearby Mosques
           </h2>
-          <div className="space-y-4">
-            {mosques.filter(mosque => showType === 'all' || mosque.type === showType).map(mosque => (
-              <div key={mosque.id} className={`p-4 border rounded-lg ${expandedMosqueId === mosque.id ? 'bg-gray-100' : ''}`} onClick={() => toggleExpandMosque(mosque.id)}>
-                <h3 className="text-lg font-semibold">{mosque.name}</h3>
-                <p className="text-gray-600">{userLocation ? `${calculateDistance(mosque)} km away` : 'Location unknown'}</p>
-                <p className="text-blue-600">
-                  <a href={`https://www.google.com/maps/dir/?api=1&destination=${mosque.latitude},${mosque.longitude}`} target="_blank" rel="noopener noreferrer">Get Directions</a>
-                </p>
-                {mosque.website_url && (
-                  <p className="text-blue-600">
-                    <a href={mosque.website_url} target="_blank" rel="noopener noreferrer">Visit Website</a>
-                  </p>
-                )}
-                {expandedMosqueId === mosque.id && (
-                  <div className="mt-2">
-                    <p className="text-gray-500">Description: {mosque.description}</p>
-                    <p className="text-gray-500">Operating Hours: {mosque.operating_hours.map(hour => (
-                      <span key={hour.day}>
-                        {hour.day}: {hour.openTime} - {hour.closeTime}
-                      </span>
-                    )).reduce((prev, curr) => [prev, ', ', curr])}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <MosqueList mosques={mosques.filter(mosque => showType === 'all' || mosque.type === showType)} userLocation={userLocation || undefined} />
         </section>
       </main>
 
