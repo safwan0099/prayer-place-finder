@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,11 +40,25 @@ const ManageMosques = () => {
     }
   });
 
+  // Update selectedLocation when selectedMosque changes
+  useEffect(() => {
+    if (selectedMosque) {
+      setSelectedLocation({
+        lat: selectedMosque.latitude,
+        lng: selectedMosque.longitude
+      });
+    } else {
+      setSelectedLocation({ lat: null, lng: null });
+    }
+  }, [selectedMosque]);
+
   const handleLocationUpdate = (lat: number, lng: number) => {
     setSelectedLocation({ lat, lng });
   };
 
   const handleModify = async (data: Mosque) => {
+    console.log('Submitting mosque data:', data);
+    
     const { error } = await supabase
       .from('mosques')
       .update({
@@ -60,9 +74,10 @@ const ManageMosques = () => {
       .eq('id', selectedMosque?.id);
 
     if (error) {
+      console.error('Error updating mosque:', error);
       toast({
         title: "Error",
-        description: "Failed to update mosque",
+        description: "Failed to update mosque: " + error.message,
         variant: "destructive",
       });
       return;
@@ -97,17 +112,6 @@ const ManageMosques = () => {
     });
     refetch();
   };
-
-  React.useEffect(() => {
-    if (selectedMosque) {
-      setSelectedLocation({
-        lat: selectedMosque.latitude,
-        lng: selectedMosque.longitude
-      });
-    } else {
-      setSelectedLocation({ lat: null, lng: null });
-    }
-  }, [selectedMosque]);
 
   // Filter mosques based on search term and type filter
   const filteredMosques = mosques?.filter(mosque => {

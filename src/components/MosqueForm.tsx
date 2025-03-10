@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,12 +51,29 @@ const MosqueForm = ({ onSubmit, selectedLocation, initialValues, onLocationUpdat
     setValue('is_restricted', value === 'true');
   };
 
+  // Initialize the form values when the component mounts or initialValues changes
+  useEffect(() => {
+    if (initialValues) {
+      setValue('type', initialValues.type || 'mosque');
+      setValue('is_restricted', initialValues.is_restricted);
+    }
+  }, [initialValues, setValue]);
+
   const onSubmitWrapper = async (data: MosqueFormData) => {
-    await onSubmit(data);
+    // Ensure the form data includes the current location
+    const formData = {
+      ...data,
+      latitude: selectedLocation.lat || data.latitude,
+      longitude: selectedLocation.lng || data.longitude
+    };
+    
+    await onSubmit(formData);
     if (!initialValues) {
       reset(); // Only reset if it's a new mosque form
     }
   };
+
+  console.log('Current form values:', { type: selectedType, isRestricted });
 
   return (
     <form onSubmit={handleSubmit(onSubmitWrapper)} className="space-y-6 bg-white p-6 rounded-lg shadow-sm">
@@ -110,7 +127,6 @@ const MosqueForm = ({ onSubmit, selectedLocation, initialValues, onLocationUpdat
               <Label htmlFor="musalla-type">Musalla</Label>
             </div>
           </RadioGroup>
-          <input type="hidden" {...register('type')} value={selectedType} />
         </div>
 
         <div>
@@ -129,7 +145,6 @@ const MosqueForm = ({ onSubmit, selectedLocation, initialValues, onLocationUpdat
               <Label htmlFor="restricted">Restricted Access</Label>
             </div>
           </RadioGroup>
-          <input type="hidden" {...register('is_restricted')} value={isRestricted ? "true" : "false"} />
         </div>
 
         <div className="space-y-4">
