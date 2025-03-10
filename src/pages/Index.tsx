@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -175,7 +174,7 @@ const Index = () => {
 
   const filteredMosques = mosques.filter(mosque => {
     if (showType === 'all') return true;
-    return mosque.type === showType || (mosque.type === undefined && showType === 'mosque');
+    return mosque.type === showType;
   });
 
   return (
@@ -230,7 +229,7 @@ const Index = () => {
                 </div>
               </div>
               <Map
-                mosques={mosques}
+                mosques={filteredMosques}
                 onLocationSelect={handleLocationSelect}
                 showType={showType}
               />

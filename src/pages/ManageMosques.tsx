@@ -7,6 +7,8 @@ import { Mosque, parseOperatingHours, formatOperatingHours, formatMosqueType } f
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import MosqueForm from '@/components/MosqueForm';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 const ManageMosques = () => {
   const navigate = useNavigate();
@@ -19,6 +21,8 @@ const ManageMosques = () => {
     lat: selectedMosque?.latitude || null,
     lng: selectedMosque?.longitude || null
   });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'mosque' | 'musalla'>('all');
 
   const { data: mosques, refetch } = useQuery({
     queryKey: ['mosques'],
@@ -105,6 +109,25 @@ const ManageMosques = () => {
     }
   }, [selectedMosque]);
 
+  // Filter mosques based on search term and type filter
+  const filteredMosques = mosques?.filter(mosque => {
+    // Filter by type
+    if (filterType !== 'all' && mosque.type !== filterType) {
+      return false;
+    }
+    
+    // Filter by search term
+    if (searchTerm) {
+      const searchTermLower = searchTerm.toLowerCase();
+      return (
+        mosque.name.toLowerCase().includes(searchTermLower) ||
+        (mosque.description && mosque.description.toLowerCase().includes(searchTermLower))
+      );
+    }
+    
+    return true;
+  }) || [];
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -131,45 +154,89 @@ const ManageMosques = () => {
             </Button>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3">Name</th>
-                    <th className="px-6 py-3">Type</th>
-                    <th className="px-6 py-3">Description</th>
-                    <th className="px-6 py-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mosques?.map((mosque) => (
-                    <tr key={mosque.id} className="border-t">
-                      <td className="px-6 py-4">{mosque.name}</td>
-                      <td className="px-6 py-4">{mosque.type === 'musalla' ? 'Musalla' : 'Mosque'}</td>
-                      <td className="px-6 py-4">{mosque.description}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline"
-                            onClick={() => setSelectedMosque(mosque)}
-                          >
-                            Modify
-                          </Button>
-                          <Button 
-                            variant="destructive"
-                            onClick={() => mosque.id && handleDelete(mosque.id)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <>
+            <div className="bg-white rounded-lg shadow p-4 mb-6">
+              <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                <div className="relative flex-1">
+                  <Input
+                    placeholder="Search by name or description"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant={filterType === 'all' ? 'default' : 'outline'}
+                    onClick={() => setFilterType('all')}
+                  >
+                    All
+                  </Button>
+                  <Button 
+                    variant={filterType === 'mosque' ? 'default' : 'outline'}
+                    onClick={() => setFilterType('mosque')}
+                  >
+                    Mosques
+                  </Button>
+                  <Button 
+                    variant={filterType === 'musalla' ? 'default' : 'outline'}
+                    onClick={() => setFilterType('musalla')}
+                  >
+                    Musallas
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
+
+            <div className="bg-white rounded-lg shadow">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3">Name</th>
+                      <th className="px-6 py-3">Type</th>
+                      <th className="px-6 py-3">Description</th>
+                      <th className="px-6 py-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredMosques.length > 0 ? (
+                      filteredMosques.map((mosque) => (
+                        <tr key={mosque.id} className="border-t">
+                          <td className="px-6 py-4">{mosque.name}</td>
+                          <td className="px-6 py-4">{mosque.type === 'musalla' ? 'Musalla' : 'Mosque'}</td>
+                          <td className="px-6 py-4">{mosque.description}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="outline"
+                                onClick={() => setSelectedMosque(mosque)}
+                              >
+                                Modify
+                              </Button>
+                              <Button 
+                                variant="destructive"
+                                onClick={() => mosque.id && handleDelete(mosque.id)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                          No mosques found matching your search criteria
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
