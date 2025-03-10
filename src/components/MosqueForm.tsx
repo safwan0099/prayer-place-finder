@@ -7,18 +7,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { MosqueFormData, Mosque } from '@/types/mosque';
+import LocationInput from './LocationInput';
 
 interface MosqueFormProps {
   onSubmit: (data: MosqueFormData) => void;
   selectedLocation: { lat: number | null; lng: number | null };
   initialValues?: Mosque;
+  onLocationUpdate: (lat: number, lng: number) => void;
 }
 
 const DAYS_OF_WEEK = [
   'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
 ];
 
-const MosqueForm = ({ onSubmit, selectedLocation, initialValues }: MosqueFormProps) => {
+const MosqueForm = ({ onSubmit, selectedLocation, initialValues, onLocationUpdate }: MosqueFormProps) => {
   const { register, handleSubmit, reset, formState: { errors }, watch } = useForm<MosqueFormData>({
     defaultValues: initialValues || {
       name: '',
@@ -130,6 +132,7 @@ const MosqueForm = ({ onSubmit, selectedLocation, initialValues }: MosqueFormPro
 
         <div>
           <Label>Location</Label>
+          <LocationInput onLocationFound={onLocationUpdate} />
           <div className="grid grid-cols-2 gap-4 mt-1">
             <Input
               readOnly
@@ -142,6 +145,7 @@ const MosqueForm = ({ onSubmit, selectedLocation, initialValues }: MosqueFormPro
               placeholder="Longitude"
             />
           </div>
+          <p className="text-sm text-gray-500 mt-1">You can either search for an address above or click on the map to select a location</p>
         </div>
       </div>
 

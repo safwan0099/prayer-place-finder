@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +11,14 @@ import MosqueForm from '@/components/MosqueForm';
 const ManageMosques = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [selectedMosque, setSelectedMosque] = React.useState<Mosque | null>(null);
+  const [selectedMosque, setSelectedMosque] = useState<Mosque | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<{
+    lat: number | null;
+    lng: number | null;
+  }>({
+    lat: selectedMosque?.latitude || null,
+    lng: selectedMosque?.longitude || null
+  });
 
   const { data: mosques, refetch } = useQuery({
     queryKey: ['mosques'],
@@ -29,6 +36,10 @@ const ManageMosques = () => {
     }
   });
 
+  const handleLocationUpdate = (lat: number, lng: number) => {
+    setSelectedLocation({ lat, lng });
+  };
+
   const handleModify = async (data: Mosque) => {
     const { error } = await supabase
       .from('mosques')
@@ -39,6 +50,8 @@ const ManageMosques = () => {
         is_restricted: data.is_restricted,
         operating_hours: formatOperatingHours(data.operating_hours),
         type: data.type || 'mosque',
+        latitude: selectedLocation.lat || data.latitude,
+        longitude: selectedLocation.lng || data.longitude,
       })
       .eq('id', selectedMosque?.id);
 
@@ -81,6 +94,17 @@ const ManageMosques = () => {
     refetch();
   };
 
+  React.useEffect(() => {
+    if (selectedMosque) {
+      setSelectedLocation({
+        lat: selectedMosque.latitude,
+        lng: selectedMosque.longitude
+      });
+    } else {
+      setSelectedLocation({ lat: null, lng: null });
+    }
+  }, [selectedMosque]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -94,11 +118,9 @@ const ManageMosques = () => {
             <h2 className="text-2xl font-semibold mb-4">Modify {selectedMosque.type === 'musalla' ? 'Musalla' : 'Mosque'}</h2>
             <MosqueForm
               onSubmit={handleModify}
-              selectedLocation={{ 
-                lat: selectedMosque.latitude, 
-                lng: selectedMosque.longitude 
-              }}
+              selectedLocation={selectedLocation}
               initialValues={selectedMosque}
+              onLocationUpdate={handleLocationUpdate}
             />
             <Button 
               variant="outline" 

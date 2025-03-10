@@ -200,6 +200,7 @@ const Index = () => {
             <MosqueForm
               onSubmit={handleSubmit}
               selectedLocation={selectedLocation}
+              onLocationUpdate={handleLocationSelect}
             />
           </div>
           
