@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { MosqueFormData, Mosque } from '@/types/mosque';
 import LocationInput from './LocationInput';
+import { toast } from 'react-hot-toast';
 
 interface MosqueFormProps {
   onSubmit: (data: MosqueFormData) => void;

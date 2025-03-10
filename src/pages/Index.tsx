@@ -174,8 +174,28 @@ const Index = () => {
 
   const filteredMosques = mosques.filter(mosque => {
     if (showType === 'all') return true;
-    return mosque.type === showType;
+    
+    // Add robust type checking and console log for debugging
+    if (!mosque || typeof mosque.type !== 'string') {
+      console.log('Invalid mosque object:', mosque);
+      return false;
+    }
+    
+    // Normalize both values for comparison
+    const normalizedType = mosque.type.toLowerCase();
+    const normalizedShowType = showType.toLowerCase();
+    
+    console.log(`Comparing: mosque type "${normalizedType}" with filter "${normalizedShowType}"`);
+    
+    return normalizedType === normalizedShowType;
   });
+
+  // Add this useEffect for debugging
+  useEffect(() => {
+    console.log('Current showType:', showType);
+    console.log('Mosque types:', mosques.map(m => ({ id: m.id, type: m.type })));
+    console.log('Filtered mosques:', filteredMosques.map(m => ({ id: m.id, type: m.type })));
+  }, [showType, mosques, filteredMosques]);
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -1,4 +1,3 @@
-
 import { Json } from "@/integrations/supabase/types";
 
 export interface Mosque {
@@ -14,6 +13,7 @@ export interface Mosque {
   source?: string;
   osm_id?: string;
   type?: 'mosque' | 'musalla';
+  accessType?: 'public' | 'restricted';
 }
 
 export interface OperatingHours {
@@ -34,9 +34,19 @@ export interface MosqueFormData {
 }
 
 // Helper function to ensure mosque type is either 'mosque' or 'musalla'
-export const formatMosqueType = (type: string | null | undefined): 'mosque' | 'musalla' => {
-  if (type === 'musalla') return 'musalla';
-  return 'mosque'; // Default to mosque for any other value
+export const formatMosqueType = (type: string): 'mosque' | 'musalla' => {
+  if (!type) return 'mosque';
+  
+  const normalizedType = type.toLowerCase().trim();
+  
+  if (normalizedType === 'musalla' || 
+      normalizedType.includes('prayer room') || 
+      normalizedType.includes('prayer_room') || 
+      normalizedType.includes('prayer-room')) {
+    return 'musalla';
+  }
+  
+  return 'mosque';
 };
 
 // Helper function to transform JSON data to OperatingHours array
