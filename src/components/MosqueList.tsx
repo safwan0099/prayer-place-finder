@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Mosque } from '@/types/mosque';
 import { isOpen } from '@/utils/timeUtils';
@@ -23,6 +24,14 @@ interface PrayerTimes {
   jummah: string | null;
 }
 
+// List of test mosque OSM IDs that we want to show prayer times for
+const TEST_MOSQUE_OSM_IDS = [
+  '2028166730', // Manchester Central Mosque
+  '305477399',  // Didsbury Mosque
+  '305477499',  // Victoria Park Mosque
+  '305477599',  // North Manchester Jamia Mosque
+];
+
 const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
   const [prayerTimes, setPrayerTimes] = useState<Record<string, PrayerTimes>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -33,8 +42,7 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
     try {
       const { data, error } = await supabase
         .from('prayer_times_manchester')
-        .select('mosque_id, fajr, dhuhr, asr, maghrib, isha, jummah')
-        .eq('date', today);
+        .select('mosque_id, fajr, dhuhr, asr, maghrib, isha, jummah');
       
       if (error) {
         console.error('Error fetching prayer times:', error);
@@ -120,6 +128,7 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
             description: `Updated prayer times for ${response.data.results.length} mosques`,
           });
           
+          // Refresh prayer times after scraping
           await fetchPrayerTimes();
         } else {
           toast({
@@ -141,6 +150,18 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
     }
   };
 
+  // Filter mosques to only show the test mosques at the top
+  const testMosques = sortedMosques.filter(mosque => 
+    TEST_MOSQUE_OSM_IDS.includes(mosque.osm_id || '')
+  );
+  
+  const otherMosques = sortedMosques.filter(mosque => 
+    !TEST_MOSQUE_OSM_IDS.includes(mosque.osm_id || '')
+  );
+  
+  // Combine the arrays with test mosques first
+  const displayMosques = [...testMosques, ...otherMosques];
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -161,15 +182,26 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
       
       <ScrollArea className="h-[500px] pr-4">
         <div className="space-y-4">
-          {sortedMosques.map((mosque) => {
+          {displayMosques.map((mosque) => {
             const distance = calculateDistance(mosque);
+            const isTestMosque = TEST_MOSQUE_OSM_IDS.includes(mosque.osm_id || '');
             const mosquePrayerTimes = mosque.id ? prayerTimes[mosque.id] : undefined;
             
             return (
-              <Card key={mosque.id} className="p-4 hover:shadow-lg transition-shadow">
+              <Card 
+                key={mosque.id} 
+                className={`p-4 hover:shadow-lg transition-shadow ${isTestMosque ? 'border-emerald-500 border-2' : ''}`}
+              >
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900">{mosque.name}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {mosque.name}
+                      {isTestMosque && (
+                        <span className="ml-2 px-2 py-1 bg-emerald-100 text-emerald-800 text-xs rounded-full">
+                          Test Mosque
+                        </span>
+                      )}
+                    </h3>
                     {mosque.description && (
                       <p className="text-gray-600 mt-1 text-sm">{mosque.description}</p>
                     )}
@@ -202,54 +234,57 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
                   </div>
                 </div>
 
-                {mosquePrayerTimes ? (
+                {/* Only show prayer time options for test mosques */}
+                {isTestMosque && (
                   <div className="mt-3 border-t pt-3">
                     <h4 className="text-sm font-medium flex items-center gap-1 mb-2">
                       <Clock size={14} className="text-emerald-600" />
                       <span>Today's Prayer Times</span>
                     </h4>
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      {mosquePrayerTimes.fajr && (
-                        <div className="bg-gray-50 p-1 rounded text-center">
-                          <div className="font-medium">Fajr</div>
-                          <div>{mosquePrayerTimes.fajr}</div>
-                        </div>
-                      )}
-                      {mosquePrayerTimes.dhuhr && (
-                        <div className="bg-gray-50 p-1 rounded text-center">
-                          <div className="font-medium">Dhuhr</div>
-                          <div>{mosquePrayerTimes.dhuhr}</div>
-                        </div>
-                      )}
-                      {mosquePrayerTimes.asr && (
-                        <div className="bg-gray-50 p-1 rounded text-center">
-                          <div className="font-medium">Asr</div>
-                          <div>{mosquePrayerTimes.asr}</div>
-                        </div>
-                      )}
-                      {mosquePrayerTimes.maghrib && (
-                        <div className="bg-gray-50 p-1 rounded text-center">
-                          <div className="font-medium">Maghrib</div>
-                          <div>{mosquePrayerTimes.maghrib}</div>
-                        </div>
-                      )}
-                      {mosquePrayerTimes.isha && (
-                        <div className="bg-gray-50 p-1 rounded text-center">
-                          <div className="font-medium">Isha</div>
-                          <div>{mosquePrayerTimes.isha}</div>
-                        </div>
-                      )}
-                      {mosquePrayerTimes.jummah && (
-                        <div className="bg-gray-50 p-1 rounded text-center">
-                          <div className="font-medium">Jummah</div>
-                          <div>{mosquePrayerTimes.jummah}</div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-3 border-t pt-3 text-center text-sm text-gray-500">
-                    <p>No prayer times available. Click "Update Prayer Times" to fetch the latest data.</p>
+                    {mosquePrayerTimes ? (
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        {mosquePrayerTimes.fajr && (
+                          <div className="bg-gray-50 p-1 rounded text-center">
+                            <div className="font-medium">Fajr</div>
+                            <div>{mosquePrayerTimes.fajr}</div>
+                          </div>
+                        )}
+                        {mosquePrayerTimes.dhuhr && (
+                          <div className="bg-gray-50 p-1 rounded text-center">
+                            <div className="font-medium">Dhuhr</div>
+                            <div>{mosquePrayerTimes.dhuhr}</div>
+                          </div>
+                        )}
+                        {mosquePrayerTimes.asr && (
+                          <div className="bg-gray-50 p-1 rounded text-center">
+                            <div className="font-medium">Asr</div>
+                            <div>{mosquePrayerTimes.asr}</div>
+                          </div>
+                        )}
+                        {mosquePrayerTimes.maghrib && (
+                          <div className="bg-gray-50 p-1 rounded text-center">
+                            <div className="font-medium">Maghrib</div>
+                            <div>{mosquePrayerTimes.maghrib}</div>
+                          </div>
+                        )}
+                        {mosquePrayerTimes.isha && (
+                          <div className="bg-gray-50 p-1 rounded text-center">
+                            <div className="font-medium">Isha</div>
+                            <div>{mosquePrayerTimes.isha}</div>
+                          </div>
+                        )}
+                        {mosquePrayerTimes.jummah && (
+                          <div className="bg-gray-50 p-1 rounded text-center">
+                            <div className="font-medium">Jummah</div>
+                            <div>{mosquePrayerTimes.jummah}</div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center text-sm text-gray-500">
+                        <p>No prayer times available. Click "Update Prayer Times" to fetch the latest data.</p>
+                      </div>
+                    )}
                   </div>
                 )}
 
