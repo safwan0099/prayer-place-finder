@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -5,7 +6,7 @@ import MosqueList from '@/components/MosqueList';
 import { Mosque, parseOperatingHours, formatMosqueType } from '@/types/mosque';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Clock, Phone, Instagram, MessageCircle } from 'lucide-react';
+import { MapPin, Clock, Phone, Instagram, MessageCircle, RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const PublicView = () => {
@@ -13,8 +14,9 @@ const PublicView = () => {
   const [mosques, setMosques] = useState<Mosque[]>([]);
   const { toast } = useToast();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [showType, setShowType] = useState<'all' | 'mosque' | 'musalla'>('musalla');
+  const [showType, setShowType] = useState<'all' | 'mosque' | 'musalla'>('all');
   const [expandedMosqueId, setExpandedMosqueId] = useState<string | null>(null);
+  const [isScrapingPrayerTimes, setIsScrapingPrayerTimes] = useState(false);
 
   useEffect(() => {
     const fetchMosques = async () => {
@@ -69,6 +71,38 @@ const PublicView = () => {
     setExpandedMosqueId(expandedMosqueId === id ? null : id);
   };
 
+  const handleScrapePrayerTimes = async () => {
+    setIsScrapingPrayerTimes(true);
+    
+    try {
+      const response = await supabase.functions.invoke('scrape-prayer-times', {
+        method: 'POST'
+      });
+      
+      if (response.error) {
+        toast({
+          title: "Error",
+          description: "Failed to scrape prayer times: " + response.error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Prayer times have been updated",
+        });
+      }
+    } catch (error) {
+      console.error('Failed to scrape prayer times:', error);
+      toast({
+        title: "Error",
+        description: "Failed to scrape prayer times",
+        variant: "destructive",
+      });
+    } finally {
+      setIsScrapingPrayerTimes(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
       {/* Header */}
@@ -86,31 +120,29 @@ const PublicView = () => {
                 Find nearby mosques and prayer times
               </p>
             </div>
-            <Button
-              onClick={() => navigate('/quran-qibla')}
-              className="bg-emerald-600 hover:bg-emerald-700"
-            >
-              Islamic Resources
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                onClick={handleScrapePrayerTimes}
+                variant="outline"
+                disabled={isScrapingPrayerTimes}
+                className="flex items-center gap-1"
+              >
+                <RefreshCcw size={16} className={isScrapingPrayerTimes ? "animate-spin" : ""} />
+                Update Prayer Times
+              </Button>
+              <Button
+                onClick={() => navigate('/quran-qibla')}
+                className="bg-emerald-600 hover:bg-emerald-700"
+              >
+                Islamic Resources
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="container mx-auto py-8 px-4 space-y-8">
-        {/* Filter Buttons */}
-        {/* <div className="flex space-x-4 mb-4">
-          <button onClick={() => handleTypeChange('all')} className="btn">
-            All
-          </button>
-          <button onClick={() => handleTypeChange('mosque')} className="btn">
-            Mosques
-          </button>
-          <button onClick={() => handleTypeChange('musalla')} className="btn">
-            Musallas
-          </button>
-        </div> */}
-
         {/* Map Section */}
         <section className="bg-white rounded-2xl shadow-lg p-4 md:p-6">
           <div className="lg:col-span-2 space-y-8">

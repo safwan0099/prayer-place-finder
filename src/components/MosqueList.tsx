@@ -1,17 +1,67 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Mosque } from '@/types/mosque';
 import { isOpen } from '@/utils/timeUtils';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ExternalLink, Clock, MapPin, Globe, VideoIcon, Info } from 'lucide-react';
+import { ExternalLink, Clock, MapPin, Globe, VideoIcon, Info, PrayingHands } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
 
 interface MosqueListProps {
   mosques: Mosque[];
   userLocation?: { lat: number; lng: number };
 }
 
+interface PrayerTimes {
+  fajr: string | null;
+  dhuhr: string | null;
+  asr: string | null;
+  maghrib: string | null;
+  isha: string | null;
+  jummah: string | null;
+}
+
 const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
+  const [prayerTimes, setPrayerTimes] = useState<Record<string, PrayerTimes>>({});
+  
+  useEffect(() => {
+    const fetchPrayerTimes = async () => {
+      // Get today's date in YYYY-MM-DD format
+      const today = format(new Date(), 'yyyy-MM-dd');
+      
+      // Fetch prayer times for all mosques for today
+      const { data, error } = await supabase
+        .from('prayer_times')
+        .select('mosque_id, fajr, dhuhr, asr, maghrib, isha, jummah')
+        .eq('date', today);
+      
+      if (error) {
+        console.error('Error fetching prayer times:', error);
+        return;
+      }
+      
+      // Organize by mosque_id
+      const timesByMosque: Record<string, PrayerTimes> = {};
+      data?.forEach(item => {
+        if (item.mosque_id) {
+          timesByMosque[item.mosque_id] = {
+            fajr: item.fajr,
+            dhuhr: item.dhuhr,
+            asr: item.asr,
+            maghrib: item.maghrib,
+            isha: item.isha,
+            jummah: item.jummah
+          };
+        }
+      });
+      
+      setPrayerTimes(timesByMosque);
+    };
+    
+    fetchPrayerTimes();
+  }, []);
+  
   const calculateDistance = (mosque: Mosque) => {
     if (!userLocation) return null;
     
@@ -34,11 +84,51 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
     return parseFloat(distA) - parseFloat(distB);
   });
 
+  const triggerPrayerTimeScraping = async () => {
+    try {
+      const response = await supabase.functions.invoke('scrape-prayer-times', {
+        method: 'POST'
+      });
+      
+      if (response.error) {
+        console.error('Error scraping prayer times:', response.error);
+      } else {
+        console.log('Prayer times scraped successfully:', response.data);
+        // Refetch prayer times to update the display
+        const today = format(new Date(), 'yyyy-MM-dd');
+        const { data, error } = await supabase
+          .from('prayer_times')
+          .select('mosque_id, fajr, dhuhr, asr, maghrib, isha, jummah')
+          .eq('date', today);
+        
+        if (!error && data) {
+          const timesByMosque: Record<string, PrayerTimes> = {};
+          data.forEach(item => {
+            if (item.mosque_id) {
+              timesByMosque[item.mosque_id] = {
+                fajr: item.fajr,
+                dhuhr: item.dhuhr,
+                asr: item.asr,
+                maghrib: item.maghrib,
+                isha: item.isha,
+                jummah: item.jummah
+              };
+            }
+          });
+          setPrayerTimes(timesByMosque);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to scrape prayer times:', error);
+    }
+  };
+
   return (
     <ScrollArea className="h-[500px] pr-4">
       <div className="space-y-4">
         {sortedMosques.map((mosque) => {
           const distance = calculateDistance(mosque);
+          const mosquePrayerTimes = mosque.id ? prayerTimes[mosque.id] : undefined;
           
           return (
             <Card key={mosque.id} className="p-4 hover:shadow-lg transition-shadow">
@@ -77,6 +167,54 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
                 </div>
               </div>
 
+              {/* Prayer Times Section */}
+              {mosquePrayerTimes && (
+                <div className="mt-3 border-t pt-3">
+                  <h4 className="text-sm font-medium flex items-center gap-1 mb-2">
+                    <PrayingHands size={14} className="text-emerald-600" />
+                    <span>Today's Prayer Times</span>
+                  </h4>
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    {mosquePrayerTimes.fajr && (
+                      <div className="bg-gray-50 p-1 rounded text-center">
+                        <div className="font-medium">Fajr</div>
+                        <div>{mosquePrayerTimes.fajr}</div>
+                      </div>
+                    )}
+                    {mosquePrayerTimes.dhuhr && (
+                      <div className="bg-gray-50 p-1 rounded text-center">
+                        <div className="font-medium">Dhuhr</div>
+                        <div>{mosquePrayerTimes.dhuhr}</div>
+                      </div>
+                    )}
+                    {mosquePrayerTimes.asr && (
+                      <div className="bg-gray-50 p-1 rounded text-center">
+                        <div className="font-medium">Asr</div>
+                        <div>{mosquePrayerTimes.asr}</div>
+                      </div>
+                    )}
+                    {mosquePrayerTimes.maghrib && (
+                      <div className="bg-gray-50 p-1 rounded text-center">
+                        <div className="font-medium">Maghrib</div>
+                        <div>{mosquePrayerTimes.maghrib}</div>
+                      </div>
+                    )}
+                    {mosquePrayerTimes.isha && (
+                      <div className="bg-gray-50 p-1 rounded text-center">
+                        <div className="font-medium">Isha</div>
+                        <div>{mosquePrayerTimes.isha}</div>
+                      </div>
+                    )}
+                    {mosquePrayerTimes.jummah && (
+                      <div className="bg-gray-50 p-1 rounded text-center">
+                        <div className="font-medium">Jummah</div>
+                        <div>{mosquePrayerTimes.jummah}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="mt-4 flex flex-wrap gap-3 text-sm">
                 {mosque.website_url && (
                   <a
@@ -99,11 +237,6 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
                   <MapPin size={14} className="mr-1" />
                   Directions
                 </a>
-
-                <div className="flex items-center text-gray-600">
-                  <Clock size={14} className="mr-1" />
-                 
-                </div>
               </div>
             </Card>
           );
