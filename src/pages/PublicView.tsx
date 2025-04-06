@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -20,26 +19,35 @@ const PublicView = () => {
 
   useEffect(() => {
     const fetchMosques = async () => {
-      const { data, error } = await supabase
-        .from('mosques')
-        .select('*');
+      try {
+        const { data, error } = await supabase
+          .from('mosques')
+          .select('*');
 
-      if (error) {
+        if (error) {
+          toast({
+            title: "Error",
+            description: "Failed to load mosques",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (data) {
+          const transformedMosques: Mosque[] = data.map(mosque => ({
+            ...mosque,
+            operating_hours: parseOperatingHours(mosque.operating_hours),
+            type: formatMosqueType(mosque.type)
+          }));
+          setMosques(transformedMosques);
+        }
+      } catch (err) {
+        console.error("Error fetching mosques:", err);
         toast({
           title: "Error",
           description: "Failed to load mosques",
           variant: "destructive",
         });
-        return;
-      }
-
-      if (data) {
-        const transformedMosques: Mosque[] = data.map(mosque => ({
-          ...mosque,
-          operating_hours: parseOperatingHours(mosque.operating_hours),
-          type: formatMosqueType(mosque.type)
-        }));
-        setMosques(transformedMosques);
       }
     };
 
@@ -80,16 +88,31 @@ const PublicView = () => {
       });
       
       if (response.error) {
+        console.error("Error from scraping function:", response.error);
         toast({
           title: "Error",
           description: "Failed to scrape prayer times: " + response.error.message,
           variant: "destructive",
         });
       } else {
+        console.log("Scraping function response:", response.data);
         toast({
           title: "Success",
           description: "Prayer times have been updated",
         });
+        
+        const { data, error } = await supabase
+          .from('mosques')
+          .select('*');
+          
+        if (!error && data) {
+          const transformedMosques: Mosque[] = data.map(mosque => ({
+            ...mosque,
+            operating_hours: parseOperatingHours(mosque.operating_hours),
+            type: formatMosqueType(mosque.type)
+          }));
+          setMosques(transformedMosques);
+        }
       }
     } catch (error) {
       console.error('Failed to scrape prayer times:', error);
@@ -105,7 +128,6 @@ const PublicView = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
-      {/* Header */}
       <header className="bg-white/80 backdrop-blur-lg shadow-sm">
         <div className="container mx-auto py-6 px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -141,9 +163,7 @@ const PublicView = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="container mx-auto py-8 px-4 space-y-8">
-        {/* Map Section */}
         <section className="bg-white rounded-2xl shadow-lg p-4 md:p-6">
           <div className="lg:col-span-2 space-y-8">
             <div>
@@ -178,7 +198,6 @@ const PublicView = () => {
           </div>
         </section>
 
-        {/* Mosque List Section */}
         <section className="bg-white rounded-2xl shadow-lg p-4 md:p-6">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <Clock className="text-emerald-600" />
@@ -188,7 +207,6 @@ const PublicView = () => {
         </section>
       </main>
 
-      {/* Footer */}
       <footer className="bg-emerald-800 text-white mt-16">
         <div className="container mx-auto py-8 px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

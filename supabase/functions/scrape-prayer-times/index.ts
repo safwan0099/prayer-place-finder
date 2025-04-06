@@ -45,7 +45,6 @@ const sources = [
             if (prayerTimes) return // Already found
             
             const dateCell = $(row).find('td:first-child').text().trim()
-            console.log("Checking row:", dateCell)
             
             // If date contains current day (either as number or formatted date)
             if (dateCell.includes(String(currentDay)) || dateCell.includes(formattedDate)) {
@@ -59,15 +58,18 @@ const sources = [
               
               console.log("Extracted times:", { fajr, dhuhr, asr, maghrib, isha })
               
-              prayerTimes = {
-                date: formattedDate,
-                fajr,
-                dhuhr,
-                asr,
-                maghrib,
-                isha,
-                jummah: "13:30", // Often fixed, but could be scraped too
-                source_url: "https://www.manchestercentralmosque.org/prayer-times/"
+              // Validate extracted times
+              if (fajr && dhuhr && asr && maghrib && isha) {
+                prayerTimes = {
+                  date: formattedDate,
+                  fajr,
+                  dhuhr,
+                  asr,
+                  maghrib,
+                  isha,
+                  jummah: "13:30", // Often fixed, but could be scraped too
+                  source_url: "https://www.manchestercentralmosque.org/prayer-times/"
+                }
               }
             }
           })
@@ -330,6 +332,22 @@ const sources = [
   }
 ]
 
+// Function to validate mosque_id exists before inserting prayer times
+async function validateMosqueId(mosqueId) {
+  const { data, error } = await supabase
+    .from('mosques')
+    .select('id')
+    .eq('id', mosqueId)
+    .single();
+    
+  if (error || !data) {
+    console.error("Invalid mosque_id:", mosqueId, error);
+    return false;
+  }
+  
+  return true;
+}
+
 // Add mosque entries to the database if they don't exist yet
 async function ensureMosquesExist() {
   console.log("Ensuring mosque entries exist in the database")
@@ -382,6 +400,82 @@ async function ensureMosquesExist() {
   }
 }
 
+// Function to safely store prayer times with error handling
+async function storePrayerTimes(mosqueId, prayerTimes) {
+  try {
+    if (!prayerTimes) {
+      console.log("No prayer times data to store");
+      return { success: false, error: "No prayer times data" };
+    }
+    
+    // Check if mosque_id exists
+    const mosqueExists = await validateMosqueId(mosqueId);
+    if (!mosqueExists) {
+      return { success: false, error: "Invalid mosque_id" };
+    }
+    
+    // Check if record already exists
+    const { data: existingRecord } = await supabase
+      .from('prayer_times_manchester')
+      .select('id')
+      .eq('mosque_id', mosqueId)
+      .eq('date', prayerTimes.date)
+      .maybeSingle();
+      
+    if (existingRecord) {
+      // Update existing record
+      console.log(`Updating existing prayer times for mosque ID ${mosqueId} on ${prayerTimes.date}`);
+      const { data, error } = await supabase
+        .from('prayer_times_manchester')
+        .update({
+          fajr: prayerTimes.fajr,
+          dhuhr: prayerTimes.dhuhr,
+          asr: prayerTimes.asr,
+          maghrib: prayerTimes.maghrib,
+          isha: prayerTimes.isha,
+          jummah: prayerTimes.jummah,
+          source_url: prayerTimes.source_url,
+          updated_at: new Date().toISOString()
+        })
+        .eq('mosque_id', mosqueId)
+        .eq('date', prayerTimes.date);
+        
+      if (error) {
+        console.error("Error updating prayer times:", error);
+        return { success: false, error };
+      }
+      
+      return { success: true, data };
+    } else {
+      // Insert new record
+      console.log(`Inserting new prayer times for mosque ID ${mosqueId} on ${prayerTimes.date}`);
+      const { data, error } = await supabase
+        .from('prayer_times_manchester')
+        .insert({
+          mosque_id: mosqueId,
+          date: prayerTimes.date,
+          fajr: prayerTimes.fajr,
+          dhuhr: prayerTimes.dhuhr,
+          asr: prayerTimes.asr,
+          maghrib: prayerTimes.maghrib,
+          isha: prayerTimes.isha,
+          jummah: prayerTimes.jummah,
+          source_url: prayerTimes.source_url
+        });
+        
+      if (error) {
+        console.error("Error inserting prayer times:", error);
+        return { success: false, error };
+      }
+      
+      return { success: true, data };
+    }
+  } catch (error) {
+    console.error("Exception in storePrayerTimes:", error);
+    return { success: false, error };
+  }
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -431,34 +525,22 @@ Deno.serve(async (req) => {
           const prayerTimes = await source.scraper();
           
           if (prayerTimes) {
-            console.log("Storing prayer times in database:", prayerTimes)
+            console.log("Storing prayer times in database:", prayerTimes);
             
-            // Store in the prayer_times_manchester table
-            const { data, error } = await supabase
-              .from('prayer_times_manchester')
-              .upsert({
-                mosque_id: matchingMosque.id,
-                date: prayerTimes.date,
-                fajr: prayerTimes.fajr,
-                dhuhr: prayerTimes.dhuhr,
-                asr: prayerTimes.asr,
-                maghrib: prayerTimes.maghrib,
-                isha: prayerTimes.isha,
-                jummah: prayerTimes.jummah,
-                source_url: prayerTimes.source_url
-              }, { onConflict: 'mosque_id,date' });
+            // Use the new safe storage function
+            const result = await storePrayerTimes(matchingMosque.id, prayerTimes);
             
-            if (error) {
-              console.error("Error storing prayer times:", error)
-              errors.push({ mosque: matchingMosque.name, error: error.message });
+            if (!result.success) {
+              console.error("Error storing prayer times:", result.error);
+              errors.push({ mosque: matchingMosque.name, error: result.error });
             } else {
               results.push({ mosque: matchingMosque.name, success: true });
             }
           } else {
-            console.log(`No prayer times retrieved for ${matchingMosque.name}`)
+            console.log(`No prayer times retrieved for ${matchingMosque.name}`);
           }
         } else {
-          console.log(`No matching mosque found for source: ${source.name}`)
+          console.log(`No matching mosque found for source: ${source.name}`);
         }
       } catch (error) {
         console.error(`Error processing ${source.name}:`, error);
