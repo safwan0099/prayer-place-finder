@@ -1,11 +1,12 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
 import MosqueList from '@/components/MosqueList';
 import { Mosque, parseOperatingHours, formatMosqueType } from '@/types/mosque';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Clock, Phone, Instagram, MessageCircle, RefreshCcw } from 'lucide-react';
+import { MapPin, Clock, Phone, Instagram, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const PublicView = () => {
@@ -14,11 +15,11 @@ const PublicView = () => {
   const { toast } = useToast();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [showType, setShowType] = useState<'all' | 'mosque' | 'musalla'>('all');
-  const [expandedMosqueId, setExpandedMosqueId] = useState<string | null>(null);
-  const [isScrapingPrayerTimes, setIsScrapingPrayerTimes] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchMosques = async () => {
+      setIsLoading(true);
       try {
         const { data, error } = await supabase
           .from('mosques')
@@ -40,6 +41,7 @@ const PublicView = () => {
             type: formatMosqueType(mosque.type)
           }));
           setMosques(transformedMosques);
+          console.log("Loaded mosques:", transformedMosques);
         }
       } catch (err) {
         console.error("Error fetching mosques:", err);
@@ -48,6 +50,8 @@ const PublicView = () => {
           description: "Failed to load mosques",
           variant: "destructive",
         });
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -75,56 +79,40 @@ const PublicView = () => {
     setShowType(type);
   };
 
-  const toggleExpandMosque = (id: string) => {
-    setExpandedMosqueId(expandedMosqueId === id ? null : id);
-  };
+  // Filter mosques based on the selected type
+  const filteredMosques = mosques.filter(
+    mosque => showType === 'all' || mosque.type === showType
+  );
 
-  const handleScrapePrayerTimes = async () => {
-    setIsScrapingPrayerTimes(true);
-    
-    try {
-      const response = await supabase.functions.invoke('scrape-prayer-times', {
-        method: 'POST'
-      });
-      
-      if (response.error) {
-        console.error("Error from scraping function:", response.error);
-        toast({
-          title: "Error",
-          description: "Failed to scrape prayer times: " + response.error.message,
-          variant: "destructive",
-        });
-      } else {
-        console.log("Scraping function response:", response.data);
-        toast({
-          title: "Success",
-          description: "Prayer times have been updated",
-        });
-        
-        const { data, error } = await supabase
-          .from('mosques')
-          .select('*');
-          
-        if (!error && data) {
-          const transformedMosques: Mosque[] = data.map(mosque => ({
-            ...mosque,
-            operating_hours: parseOperatingHours(mosque.operating_hours),
-            type: formatMosqueType(mosque.type)
-          }));
-          setMosques(transformedMosques);
+  // Load prayer times on initial load
+  useEffect(() => {
+    if (mosques.length > 0 && !isLoading) {
+      const initializePrayerTimes = async () => {
+        try {
+          const { data } = await supabase
+            .from('prayer_times_manchester')
+            .select('*')
+            .limit(1);
+            
+          if (!data || data.length === 0) {
+            console.log("No prayer times found in database, triggering scrape");
+            // No data in database, trigger scraping
+            const response = await supabase.functions.invoke('scrape-prayer-times', {
+              method: 'POST'
+            });
+            
+            console.log("Initial prayer times scraping response:", response);
+          } else {
+            console.log("Found existing prayer times in database");
+          }
+        } catch (error) {
+          console.error("Error initializing prayer times:", error);
         }
-      }
-    } catch (error) {
-      console.error('Failed to scrape prayer times:', error);
-      toast({
-        title: "Error",
-        description: "Failed to scrape prayer times",
-        variant: "destructive",
-      });
-    } finally {
-      setIsScrapingPrayerTimes(false);
+      };
+      
+      initializePrayerTimes();
     }
-  };
+  }, [mosques, isLoading]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
@@ -143,15 +131,6 @@ const PublicView = () => {
               </p>
             </div>
             <div className="flex gap-3">
-              <Button
-                onClick={handleScrapePrayerTimes}
-                variant="outline"
-                disabled={isScrapingPrayerTimes}
-                className="flex items-center gap-1"
-              >
-                <RefreshCcw size={16} className={isScrapingPrayerTimes ? "animate-spin" : ""} />
-                Update Prayer Times
-              </Button>
               <Button
                 onClick={() => navigate('/quran-qibla')}
                 className="bg-emerald-600 hover:bg-emerald-700"
@@ -191,7 +170,7 @@ const PublicView = () => {
                 </div>
               </div>
               <Map
-                mosques={mosques.filter(mosque => showType === 'all' || mosque.type === showType)}
+                mosques={filteredMosques}
                 onLocationSelect={undefined}
               />
             </div>
@@ -203,7 +182,7 @@ const PublicView = () => {
             <Clock className="text-emerald-600" />
             Nearby Mosques
           </h2>
-          <MosqueList mosques={mosques.filter(mosque => showType === 'all' || mosque.type === showType)} userLocation={userLocation || undefined} />
+          <MosqueList mosques={filteredMosques} userLocation={userLocation || undefined} />
         </section>
       </main>
 
