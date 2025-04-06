@@ -186,7 +186,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      insert_prayer_times: {
+        Args: {
+          p_mosque_id: string
+          p_date: string
+          p_fajr: string
+          p_dhuhr: string
+          p_asr: string
+          p_maghrib: string
+          p_isha: string
+          p_jummah: string
+          p_source_url: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
