@@ -107,6 +107,59 @@ export type Database = {
           },
         ]
       }
+      prayer_times_manchester: {
+        Row: {
+          asr: string | null
+          created_at: string | null
+          date: string
+          dhuhr: string | null
+          fajr: string | null
+          id: string
+          isha: string | null
+          jummah: string | null
+          maghrib: string | null
+          mosque_id: string | null
+          source_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          asr?: string | null
+          created_at?: string | null
+          date: string
+          dhuhr?: string | null
+          fajr?: string | null
+          id?: string
+          isha?: string | null
+          jummah?: string | null
+          maghrib?: string | null
+          mosque_id?: string | null
+          source_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          asr?: string | null
+          created_at?: string | null
+          date?: string
+          dhuhr?: string | null
+          fajr?: string | null
+          id?: string
+          isha?: string | null
+          jummah?: string | null
+          maghrib?: string | null
+          mosque_id?: string | null
+          source_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prayer_times_manchester_mosque_id_fkey"
+            columns: ["mosque_id"]
+            isOneToOne: false
+            referencedRelation: "mosques"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string

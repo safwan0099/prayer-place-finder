@@ -4,7 +4,7 @@ import { Mosque } from '@/types/mosque';
 import { isOpen } from '@/utils/timeUtils';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ExternalLink, Clock, MapPin, Globe, VideoIcon, Info, PrayingHands } from 'lucide-react';
+import { ExternalLink, Clock, MapPin, Globe, VideoIcon, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 
@@ -32,7 +32,7 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
       
       // Fetch prayer times for all mosques for today
       const { data, error } = await supabase
-        .from('prayer_times')
+        .from('prayer_times_manchester')
         .select('mosque_id, fajr, dhuhr, asr, maghrib, isha, jummah')
         .eq('date', today);
       
@@ -97,7 +97,7 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
         // Refetch prayer times to update the display
         const today = format(new Date(), 'yyyy-MM-dd');
         const { data, error } = await supabase
-          .from('prayer_times')
+          .from('prayer_times_manchester')
           .select('mosque_id, fajr, dhuhr, asr, maghrib, isha, jummah')
           .eq('date', today);
         
@@ -171,7 +171,7 @@ const MosqueList = ({ mosques, userLocation }: MosqueListProps) => {
               {mosquePrayerTimes && (
                 <div className="mt-3 border-t pt-3">
                   <h4 className="text-sm font-medium flex items-center gap-1 mb-2">
-                    <PrayingHands size={14} className="text-emerald-600" />
+                    <Clock size={14} className="text-emerald-600" />
                     <span>Today's Prayer Times</span>
                   </h4>
                   <div className="grid grid-cols-3 gap-2 text-xs">
